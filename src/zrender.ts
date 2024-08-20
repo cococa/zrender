@@ -495,6 +495,7 @@ export interface ZRenderInitOpt {
     useCoarsePointer?: 'auto' | boolean
     pointerSize?: number
     ssr?: boolean   // If enable ssr mode.
+    roughness:  number  //手绘粗糙度 0为正常 大于0为手绘风格
 }
 
 /**
