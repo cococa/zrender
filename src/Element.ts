@@ -252,6 +252,7 @@ export interface ElementProps extends Partial<ElementEventHandlerProps>, Partial
 
     // For echarts animation.
     anid?: string
+
 }
 
 // Properties can be used in state.
@@ -291,6 +292,9 @@ interface Element<Props extends ElementProps = ElementProps> extends Transformab
 }
 
 class Element<Props extends ElementProps = ElementProps> {
+
+    roughness: number 
+
 
     id: number = guid()
     /**

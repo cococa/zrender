@@ -22,7 +22,8 @@
     var Rect = zrender.Rect;
 
     var zr = zrender.init(document.getElementById('main'), {
-        renderer: window.__ZRENDER__DEFAULT__RENDERER__
+        renderer: window.__ZRENDER__DEFAULT__RENDERER__,
+        roughness : 1
     });
 
     showBoundingRect = function () {

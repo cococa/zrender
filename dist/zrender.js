@@ -6967,6 +6967,7 @@
             this.id = id;
             const storage = new Storage();
             let rendererType = opts.renderer || 'canvas';
+            this.roughness = opts.roughness || 0;
             if (!painterCtors[rendererType]) {
                 rendererType = keys(painterCtors)[0];
             }
@@ -7005,9 +7006,11 @@
             }
         }
         add(el) {
+            console.log("zrender init add", el);
             if (this._disposed || !el) {
                 return;
             }
+            el.roughness = this.roughness;
             this.storage.addRoot(el);
             el.addSelfToZr(this);
             this.refresh();
@@ -9938,6 +9941,7 @@
             return new LineShape();
         }
         buildPath(ctx, shape) {
+            console.log("line buildPath", this.roughness);
             let x1;
             let y1;
             let x2;
@@ -9956,7 +9960,19 @@
                 y2 = shape.y2;
             }
             const percent = shape.percent;
-            this.drawHandDrawnLine(ctx, x1, y1, x2, y2, 1);
+            if (percent === 0) {
+                return;
+            }
+            if (this.roughness) {
+                this.drawHandDrawnLine(ctx, x1, y1, x2, y2, this.roughness);
+                return;
+            }
+            ctx.moveTo(x1, y1);
+            if (percent < 1) {
+                x2 = x1 * (1 - percent) + x2 * percent;
+                y2 = y1 * (1 - percent) + y2 * percent;
+            }
+            ctx.lineTo(x2, y2);
         }
         getRandomOffset(radius) {
             return Math.random() * radius * 2 - radius;

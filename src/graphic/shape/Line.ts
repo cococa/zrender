@@ -43,6 +43,10 @@ class Line extends Path<LineProps> {
   }
 
   buildPath(ctx: CanvasRenderingContext2D, shape: LineShape) {
+
+
+    console.log("line buildPath",this.roughness);
+
     let x1;
     let y1;
     let x2;
@@ -67,18 +71,21 @@ class Line extends Path<LineProps> {
 
     const percent = shape.percent;
 
-    // if (percent === 0) {
-    //   return;
-    // }
+    if (percent === 0) {
+      return;
+    }
 
-    // ctx.moveTo(x1, y1);
+    if(this.roughness){
+      this.drawHandDrawnLine(ctx, x1, y1, x2, y2, this.roughness);
+      return;
+    }
 
-    // if (percent < 1) {
-    //   x2 = x1 * (1 - percent) + x2 * percent;
-    //   y2 = y1 * (1 - percent) + y2 * percent;
-    // }
-    // ctx.lineTo(x2, y2);
-    this.drawHandDrawnLine(ctx, x1, y1, x2, y2, 1);
+    ctx.moveTo(x1, y1);
+    if (percent < 1) {
+      x2 = x1 * (1 - percent) + x2 * percent;
+      y2 = y1 * (1 - percent) + y2 * percent;
+    }
+    ctx.lineTo(x2, y2);
   }
 
   getRandomOffset(radius: number): number {

@@ -75,6 +75,9 @@ class ZRender {
     handler: Handler
     animation: Animation
 
+
+    roughness: number
+
     private _sleepAfterStill = 10;
 
     private _stillFrameAccum = 0;
@@ -102,6 +105,8 @@ class ZRender {
         const storage = new Storage();
 
         let rendererType = opts.renderer || 'canvas';
+
+        this.roughness = opts.roughness || 0
 
         if (!painterCtors[rendererType]) {
             // Use the first registered renderer.
@@ -154,9 +159,11 @@ class ZRender {
      * 添加元素
      */
     add(el: Element) {
+        console.log("zrender init add", el);
         if (this._disposed || !el) {
             return;
         }
+        el.roughness = this.roughness
         this.storage.addRoot(el);
         el.addSelfToZr(this);
         this.refresh();
@@ -495,7 +502,7 @@ export interface ZRenderInitOpt {
     useCoarsePointer?: 'auto' | boolean
     pointerSize?: number
     ssr?: boolean   // If enable ssr mode.
-    roughness:  number  //手绘粗糙度 0为正常 大于0为手绘风格
+    roughness?:  number  //手绘粗糙度 0为正常 大于0为手绘风格
 }
 
 /**
