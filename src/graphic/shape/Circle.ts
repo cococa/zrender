@@ -2,37 +2,49 @@
  * 圆形
  */
 
-import Path, { PathProps } from '../Path';
+import Path, { PathProps } from "../Path";
+import rough from "roughjs";
 
 export class CircleShape {
-    cx = 0
-    cy = 0
-    r = 0
+  cx = 0;
+  cy = 0;
+  r = 0;
 }
 
 export interface CircleProps extends PathProps {
-    shape?: Partial<CircleShape>
+  shape?: Partial<CircleShape>;
 }
 class Circle extends Path<CircleProps> {
+  shape: CircleShape;
 
-    shape: CircleShape
+  constructor(opts?: CircleProps) {
+    
+    super(opts);
+  }
 
-    constructor(opts?: CircleProps) {
-        super(opts);
+  getDefaultShape() {
+    return new CircleShape();
+  }
+
+  buildPath(ctx: CanvasRenderingContext2D, shape: CircleShape) {
+    // Use moveTo to start a new sub path.
+    // Or it will be connected to other subpaths when in CompoundPath
+
+    if (this.roughness) {
+      const rc = rough.canvas(null, ctx, {
+        options: {
+          roughness: this.roughness,
+        },
+      });
+      rc.circle(shape.cx, shape.cy, shape.r * 2);
+      return;
     }
 
-    getDefaultShape() {
-        return new CircleShape();
-    }
+    ctx.moveTo(shape.cx + shape.r, shape.cy);
+    ctx.arc(shape.cx, shape.cy, shape.r, 0, Math.PI * 2);
+  }
+}
 
-    buildPath(ctx: CanvasRenderingContext2D, shape: CircleShape) {
-        // Use moveTo to start a new sub path.
-        // Or it will be connected to other subpaths when in CompoundPath
-        ctx.moveTo(shape.cx + shape.r, shape.cy);
-        ctx.arc(shape.cx, shape.cy, shape.r, 0, Math.PI * 2);
-    }
-};
-
-Circle.prototype.type = 'circle';
+Circle.prototype.type = "circle";
 
 export default Circle;

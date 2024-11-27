@@ -6,6 +6,7 @@
 import Path, { PathProps } from "../Path";
 import { subPixelOptimizeLine } from "../helper/subPixelOptimize";
 import { VectorArray } from "../../core/vector";
+import rough from "roughjs";
 
 // Avoid create repeatly.
 const subPixelOptimizeOutputShape = {};
@@ -28,6 +29,7 @@ class Line extends Path<LineProps> {
   shape: LineShape;
 
   constructor(opts?: LineProps) {
+    console.log("line constructor")
     super(opts);
   }
 
@@ -43,9 +45,7 @@ class Line extends Path<LineProps> {
   }
 
   buildPath(ctx: CanvasRenderingContext2D, shape: LineShape) {
-
-
-    console.log("line buildPath",this.roughness);
+    console.log("line buildPath", this.id, this.roughness);
 
     let x1;
     let y1;
@@ -75,8 +75,29 @@ class Line extends Path<LineProps> {
       return;
     }
 
-    if(this.roughness){
-      this.drawHandDrawnLine(ctx, x1, y1, x2, y2, this.roughness);
+    // if (3) {
+    //   const rc = rough.canvas(null, ctx,{
+    //     options: {
+    //       roughness: 1
+    //     }
+    //   });
+    //   console.log(rc)
+    //   rc.line(x1, y1, x2, y2);
+
+    //   // this.drawHandDrawnLine(ctx, x1, y1, x2, y2, this.roughness);
+    //   return;
+    // }
+
+    if (this.roughness) {
+      const rc = rough.canvas(null, ctx,{
+        options: {
+          roughness: this.roughness
+        }
+      });
+      console.log(rc)
+      rc.line(x1, y1, x2, y2);
+
+      // this.drawHandDrawnLine(ctx, x1, y1, x2, y2, this.roughness);
       return;
     }
 

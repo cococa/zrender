@@ -611,9 +611,12 @@ export function brush(
     ctx: CanvasRenderingContext2D,
     el: Displayable,
     scope: BrushScope,
-    isLast: boolean
+    isLast: boolean,
+    roughness?: number
 ) {
     const m = el.transform;
+
+    console.log("brush roughness", roughness);
 
     if (!el.shouldBePainted(scope.viewWidth, scope.viewHeight, false, false)) {
         // Needs to mark el rendered.

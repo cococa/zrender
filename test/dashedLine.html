@@ -4,13 +4,14 @@
     <meta charset="utf-8" />
     <title>Dashed Line</title>
     <script src="../dist/zrender.js"></script>
+
 </head>
 <body>
     <div id="main" style="width:1200px;height:600px;"></div>
     <script type="text/javascript">
         // 初始化zrender
         var zr = zrender.init(document.getElementById('main'),{
-            roughness: 4
+            roughness: 2
         });
 
         // var points = [];
@@ -40,8 +41,8 @@
 
         var line = new zrender.Line({
             style: {
-                lineDash: [10, 10],
-                stroke: 'rgba(10, 80, 60, 0.8)'
+                // lineDash: [10, 10],
+                // stroke: 'rgba(10, 80, 60, 0.8)'
             },
             shape: {
                 x1: 100,

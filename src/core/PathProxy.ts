@@ -149,6 +149,9 @@ export default class PathProxy {
     static CMD = CMD
 
     constructor(notSaveData?: boolean) {
+
+        console.log("PathProxy constructor");
+
         if (notSaveData) {
             this._saveData = false;
         }
@@ -219,6 +222,8 @@ export default class PathProxy {
     }
 
     moveTo(x: number, y: number) {
+        console.log("PathProxy moveTo", x, y);
+
         // Add pending point for previous path.
         this._drawPendingPt();
 
@@ -239,6 +244,8 @@ export default class PathProxy {
     }
 
     lineTo(x: number, y: number) {
+        console.log("PathProxy lineTo", x, y);
+
         const dx = mathAbs(x - this._xi);
         const dy = mathAbs(y - this._yi);
         const exceedUnit = dx > this._ux || dy > this._uy;

@@ -67,7 +67,8 @@ interface CanvasPainterOption {
     devicePixelRatio?: number
     width?: number | string  // Can be 10 / 10px / auto
     height?: number | string,
-    useDirtyRect?: boolean
+    useDirtyRect?: boolean,
+    roughness?: number
 }
 
 export default class CanvasPainter implements PainterBase {
@@ -118,6 +119,9 @@ export default class CanvasPainter implements PainterBase {
             || root.nodeName.toUpperCase() === 'CANVAS';
 
         this._opts = opts = util.extend({}, opts || {}) as CanvasPainterOption;
+
+        console.log("this._opts", this._opts);
+
 
         /**
          * @type {number}
@@ -509,15 +513,18 @@ export default class CanvasPainter implements PainterBase {
         isLast: boolean
     ) {
         const ctx = currentLayer.ctx;
+        const roughness =  this._opts.roughness
+
+
         if (useDirtyRect) {
             const paintRect = el.getPaintRect();
             if (!repaintRect || paintRect && paintRect.intersect(repaintRect)) {
-                brush(ctx, el, scope, isLast);
+                brush(ctx, el, scope, isLast,roughness);
                 el.setPrevPaintRect(paintRect);
             }
         }
         else {
-            brush(ctx, el, scope, isLast);
+            brush(ctx, el, scope, isLast,roughness);
         }
     }
 
