@@ -7005,7 +7005,7 @@
             }
         }
         add(el) {
-            console.log("zrender init add", el);
+            console.log("zrender init add", el.id, el);
             if (this._disposed || !el) {
                 return;
             }
@@ -7737,6 +7737,7 @@
             this._x0 = 0;
             this._y0 = 0;
             this._len = 0;
+            console.log("PathProxy constructor");
             if (notSaveData) {
                 this._saveData = false;
             }
@@ -7782,6 +7783,7 @@
             this._version++;
         }
         moveTo(x, y) {
+            console.log("PathProxy moveTo", x, y);
             this._drawPendingPt();
             this.addData(CMD.M, x, y);
             this._ctx && this._ctx.moveTo(x, y);
@@ -7792,6 +7794,7 @@
             return this;
         }
         lineTo(x, y) {
+            console.log("PathProxy lineTo", x, y);
             const dx = mathAbs(x - this._xi);
             const dy = mathAbs(y - this._yi);
             const exceedUnit = dx > this._ux || dy > this._uy;
@@ -9709,82 +9712,6 @@
     }
     Circle.prototype.type = "circle";
 
-    function buildPath(ctx, shape) {
-        let x = shape.x;
-        let y = shape.y;
-        let width = shape.width;
-        let height = shape.height;
-        let r = shape.r;
-        let r1;
-        let r2;
-        let r3;
-        let r4;
-        if (width < 0) {
-            x = x + width;
-            width = -width;
-        }
-        if (height < 0) {
-            y = y + height;
-            height = -height;
-        }
-        if (typeof r === 'number') {
-            r1 = r2 = r3 = r4 = r;
-        }
-        else if (r instanceof Array) {
-            if (r.length === 1) {
-                r1 = r2 = r3 = r4 = r[0];
-            }
-            else if (r.length === 2) {
-                r1 = r3 = r[0];
-                r2 = r4 = r[1];
-            }
-            else if (r.length === 3) {
-                r1 = r[0];
-                r2 = r4 = r[1];
-                r3 = r[2];
-            }
-            else {
-                r1 = r[0];
-                r2 = r[1];
-                r3 = r[2];
-                r4 = r[3];
-            }
-        }
-        else {
-            r1 = r2 = r3 = r4 = 0;
-        }
-        let total;
-        if (r1 + r2 > width) {
-            total = r1 + r2;
-            r1 *= width / total;
-            r2 *= width / total;
-        }
-        if (r3 + r4 > width) {
-            total = r3 + r4;
-            r3 *= width / total;
-            r4 *= width / total;
-        }
-        if (r2 + r3 > height) {
-            total = r2 + r3;
-            r2 *= height / total;
-            r3 *= height / total;
-        }
-        if (r1 + r4 > height) {
-            total = r1 + r4;
-            r1 *= height / total;
-            r4 *= height / total;
-        }
-        ctx.moveTo(x + r1, y);
-        ctx.lineTo(x + width - r2, y);
-        r2 !== 0 && ctx.arc(x + width - r2, y + r2, r2, -Math.PI / 2, 0);
-        ctx.lineTo(x + width, y + height - r3);
-        r3 !== 0 && ctx.arc(x + width - r3, y + height - r3, r3, 0, Math.PI / 2);
-        ctx.lineTo(x + r4, y + height);
-        r4 !== 0 && ctx.arc(x + r4, y + height - r4, r4, Math.PI / 2, Math.PI);
-        ctx.lineTo(x, y + r1);
-        r1 !== 0 && ctx.arc(x + r1, y + r1, r1, Math.PI, Math.PI * 1.5);
-    }
-
     const round = Math.round;
     function subPixelOptimizeLine(outputShape, inputShape, style) {
         if (!inputShape) {
@@ -9842,6 +9769,189 @@
             : (doubledPosition + (positiveOrNegative ? 1 : -1)) / 2;
     }
 
+    class Random {
+        constructor(seed) {
+            this.seed = seed;
+        }
+        next() {
+            if (this.seed) {
+                return ((Math.pow(2, 31) - 1) & (this.seed = Math.imul(48271, this.seed))) / Math.pow(2, 31);
+            }
+            else {
+                return Math.random();
+            }
+        }
+    }
+
+    function random$1(ops) {
+        if (!ops.randomizer) {
+            ops.randomizer = new Random(ops.seed || 0);
+        }
+        return ops.randomizer.next();
+    }
+    function _offset(min, max, ops, roughnessGain = 1) {
+        return ops.roughness * roughnessGain * (random$1(ops) * (max - min) + min);
+    }
+    function _offsetOpt(x, ops, roughnessGain = 1) {
+        return _offset(-x, x, ops, roughnessGain);
+    }
+    function _line(x1, y1, x2, y2, o, move, overlay) {
+        const lengthSq = Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2);
+        const length = Math.sqrt(lengthSq);
+        let roughnessGain = 1;
+        if (length < 200) {
+            roughnessGain = 1;
+        }
+        else if (length > 500) {
+            roughnessGain = 0.4;
+        }
+        else {
+            roughnessGain = -0.0016668 * length + 1.233334;
+        }
+        let offset = o.maxRandomnessOffset || 0;
+        if (offset * offset * 100 > lengthSq) {
+            offset = length / 10;
+        }
+        const halfOffset = offset / 2;
+        const divergePoint = 0.2 + random$1(o) * 0.2;
+        let midDispX = (o.bowing * o.maxRandomnessOffset * (y2 - y1)) / 200;
+        let midDispY = (o.bowing * o.maxRandomnessOffset * (x1 - x2)) / 200;
+        midDispX = _offsetOpt(midDispX, o, roughnessGain);
+        midDispY = _offsetOpt(midDispY, o, roughnessGain);
+        const ops = [];
+        const randomHalf = () => _offsetOpt(halfOffset, o, roughnessGain);
+        const randomFull = () => _offsetOpt(offset, o, roughnessGain);
+        const preserveVertices = o.preserveVertices;
+        if (move) {
+            if (overlay) {
+                ops.push({
+                    op: "move",
+                    data: [
+                        x1 + (preserveVertices ? 0 : randomHalf()),
+                        y1 + (preserveVertices ? 0 : randomHalf()),
+                    ],
+                });
+            }
+            else {
+                ops.push({
+                    op: "move",
+                    data: [
+                        x1 + (preserveVertices ? 0 : _offsetOpt(offset, o, roughnessGain)),
+                        y1 + (preserveVertices ? 0 : _offsetOpt(offset, o, roughnessGain)),
+                    ],
+                });
+            }
+        }
+        if (overlay) {
+            ops.push({
+                op: "bcurveTo",
+                data: [
+                    midDispX + x1 + (x2 - x1) * divergePoint + randomHalf(),
+                    midDispY + y1 + (y2 - y1) * divergePoint + randomHalf(),
+                    midDispX + x1 + 2 * (x2 - x1) * divergePoint + randomHalf(),
+                    midDispY + y1 + 2 * (y2 - y1) * divergePoint + randomHalf(),
+                    x2 + (preserveVertices ? 0 : randomHalf()),
+                    y2 + (preserveVertices ? 0 : randomHalf()),
+                ],
+            });
+        }
+        else {
+            ops.push({
+                op: "bcurveTo",
+                data: [
+                    midDispX + x1 + (x2 - x1) * divergePoint + randomFull(),
+                    midDispY + y1 + (y2 - y1) * divergePoint + randomFull(),
+                    midDispX + x1 + 2 * (x2 - x1) * divergePoint + randomFull(),
+                    midDispY + y1 + 2 * (y2 - y1) * divergePoint + randomFull(),
+                    x2 + (preserveVertices ? 0 : randomFull()),
+                    y2 + (preserveVertices ? 0 : randomFull()),
+                ],
+            });
+        }
+        return ops;
+    }
+    const defaultOptions = {
+        maxRandomnessOffset: 2,
+        roughness: 1,
+        bowing: 1,
+        stroke: "#000",
+        strokeWidth: 1,
+        curveTightness: 0,
+        curveFitting: 0.95,
+        curveStepCount: 9,
+        fillStyle: "hachure",
+        fillWeight: -1,
+        hachureAngle: -41,
+        hachureGap: -1,
+        dashOffset: -1,
+        dashGap: -1,
+        zigzagOffset: -1,
+        seed: 0,
+        disableMultiStroke: false,
+        disableMultiStrokeFill: false,
+        preserveVertices: false,
+        fillShapeRoughnessGain: 0.8,
+    };
+    function _doubleLine(x1, y1, x2, y2, o, filling = false) {
+        const singleStroke = filling ? o.disableMultiStrokeFill : o.disableMultiStroke;
+        const o1 = _line(x1, y1, x2, y2, o, true, false);
+        if (singleStroke) {
+            return o1;
+        }
+        const o2 = _line(x1, y1, x2, y2, o, true, true);
+        return o1.concat(o2);
+    }
+    function line(x1, y1, x2, y2, o) {
+        return { type: 'path', ops: _doubleLine(x1, y1, x2, y2, o) };
+    }
+    function linearPath(points, close, o) {
+        const len = (points || []).length;
+        if (len > 2) {
+            const ops = [];
+            for (let i = 0; i < (len - 1); i++) {
+                ops.push(..._doubleLine(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1], o));
+            }
+            if (close) {
+                ops.push(..._doubleLine(points[len - 1][0], points[len - 1][1], points[0][0], points[0][1], o));
+            }
+            return { type: 'path', ops };
+        }
+        else if (len === 2) {
+            return line(points[0][0], points[0][1], points[1][0], points[1][1], o);
+        }
+        return { type: 'path', ops: [] };
+    }
+    function polygon(points, o) {
+        return linearPath(points, true, o);
+    }
+    function rectangle(x, y, width, height, o) {
+        const points = [
+            [x, y],
+            [x + width, y],
+            [x + width, y + height],
+            [x, y + height],
+        ];
+        return polygon(points, o);
+    }
+    function _drawToContext(ctx, drawing, fixedDecimals) {
+        ctx.beginPath();
+        for (const item of drawing.ops) {
+            const data = ((typeof fixedDecimals === 'number') && fixedDecimals >= 0) ? (item.data.map((d) => +d.toFixed(fixedDecimals))) : item.data;
+            switch (item.op) {
+                case 'move':
+                    ctx.moveTo(data[0], data[1]);
+                    break;
+                case 'bcurveTo':
+                    ctx.bezierCurveTo(data[0], data[1], data[2], data[3], data[4], data[5]);
+                    break;
+                case 'lineTo':
+                    ctx.lineTo(data[0], data[1]);
+                    break;
+            }
+        }
+        ctx.stroke();
+    }
+
     class RectShape {
         constructor() {
             this.x = 0;
@@ -9878,18 +9988,18 @@
                 width = shape.width;
                 height = shape.height;
             }
+            const roughnessOption = Object.assign(Object.assign({}, defaultOptions), { roughness: this.roughness });
+            const res = rectangle(x, y, width, height, roughnessOption);
+            console.log("rect build path", res);
             if (!shape.r) {
-                ctx.rect(x, y, width, height);
-            }
-            else {
-                buildPath(ctx, shape);
+                _drawToContext(ctx, res, 1);
             }
         }
         isZeroArea() {
             return !this.shape.width || !this.shape.height;
         }
     }
-    Rect.prototype.type = 'rect';
+    Rect.prototype.type = "rect";
 
     class EllipseShape {
         constructor() {
@@ -9936,6 +10046,7 @@
     }
     class Line extends Path {
         constructor(opts) {
+            console.log("line constructor", opts);
             super(opts);
         }
         getDefaultStyle() {
@@ -9948,7 +10059,7 @@
             return new LineShape();
         }
         buildPath(ctx, shape) {
-            console.log("line buildPath", this.roughness);
+            console.log("line buildPath", this.id, this.roughness);
             let x1;
             let y1;
             let x2;
@@ -9973,8 +10084,8 @@
             if (this.roughness) {
                 const rc = at.canvas(null, ctx, {
                     options: {
-                        roughness: this.roughness
-                    }
+                        roughness: this.roughness,
+                    },
                 });
                 console.log(rc);
                 rc.line(x1, y1, x2, y2);
@@ -10076,7 +10187,7 @@
         return cps;
     }
 
-    function buildPath$1(ctx, shape, closePath) {
+    function buildPath(ctx, shape, closePath) {
         const smooth = shape.smooth;
         let points = shape.points;
         if (points && points.length >= 2) {
@@ -10116,7 +10227,7 @@
             return new PolygonShape();
         }
         buildPath(ctx, shape) {
-            buildPath$1(ctx, shape, true);
+            buildPath(ctx, shape, true);
         }
     }
     Polygon.prototype.type = 'polygon';
@@ -10143,7 +10254,7 @@
             return new PolylineShape();
         }
         buildPath(ctx, shape) {
-            buildPath$1(ctx, shape, false);
+            buildPath(ctx, shape, false);
         }
     }
     Polyline.prototype.type = 'polyline';
@@ -10957,7 +11068,7 @@
         }
         return arr;
     }
-    function buildPath$2(ctx, shape) {
+    function buildPath$1(ctx, shape) {
         let radius = mathMax$3(shape.r, 0);
         let innerRadius = mathMax$3(shape.r0 || 0, 0);
         const hasRadius = radius > 0;
@@ -11116,7 +11227,7 @@
             return new SectorShape();
         }
         buildPath(ctx, shape) {
-            buildPath$2(ctx, shape);
+            buildPath$1(ctx, shape);
         }
         isZeroArea() {
             return this.shape.startAngle === this.shape.endAngle
@@ -14576,8 +14687,9 @@ pointer-events:none;
     function brushSingle(ctx, el) {
         brush(ctx, el, { inHover: false, viewWidth: 0, viewHeight: 0 }, true);
     }
-    function brush(ctx, el, scope, isLast) {
+    function brush(ctx, el, scope, isLast, roughness) {
         const m = el.transform;
+        console.log("brush roughness", roughness);
         if (!el.shouldBePainted(scope.viewWidth, scope.viewHeight, false, false)) {
             el.__dirty &= ~REDRAW_BIT;
             el.__isRendered = false;
@@ -15035,6 +15147,7 @@ pointer-events:none;
             const singleCanvas = !root.nodeName
                 || root.nodeName.toUpperCase() === 'CANVAS';
             this._opts = opts = extend({}, opts || {});
+            console.log("this._opts", this._opts);
             this.dpr = opts.devicePixelRatio || devicePixelRatio;
             this._singleCanvas = singleCanvas;
             this.root = root;
@@ -15293,15 +15406,16 @@ pointer-events:none;
         }
         _doPaintEl(el, currentLayer, useDirtyRect, repaintRect, scope, isLast) {
             const ctx = currentLayer.ctx;
+            const roughness = this._opts.roughness;
             if (useDirtyRect) {
                 const paintRect = el.getPaintRect();
                 if (!repaintRect || paintRect && paintRect.intersect(repaintRect)) {
-                    brush(ctx, el, scope, isLast);
+                    brush(ctx, el, scope, isLast, roughness);
                     el.setPrevPaintRect(paintRect);
                 }
             }
             else {
-                brush(ctx, el, scope, isLast);
+                brush(ctx, el, scope, isLast, roughness);
             }
         }
         getLayer(zlevel, virtual) {

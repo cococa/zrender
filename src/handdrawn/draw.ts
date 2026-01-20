@@ -433,7 +433,7 @@ function circle(
   return ret;
 }
 
-const defaultOptions: ResolvedOptions = {
+export const defaultOptions: ResolvedOptions = {
   maxRandomnessOffset: 2,
   roughness: 1,
   bowing: 1,
@@ -455,3 +455,77 @@ const defaultOptions: ResolvedOptions = {
   preserveVertices: false,
   fillShapeRoughnessGain: 0.8,
 };
+
+
+
+
+function _doubleLine(x1: number, y1: number, x2: number, y2: number, o: ResolvedOptions, filling = false): Op[] {
+  const singleStroke = filling ? o.disableMultiStrokeFill : o.disableMultiStroke;
+  const o1 = _line(x1, y1, x2, y2, o, true, false);
+  if (singleStroke) {
+    return o1;
+  }
+  const o2 = _line(x1, y1, x2, y2, o, true, true);
+  return o1.concat(o2);
+}
+
+
+export function line(x1: number, y1: number, x2: number, y2: number, o: ResolvedOptions): OpSet {
+  return { type: 'path', ops: _doubleLine(x1, y1, x2, y2, o) };
+}
+
+export function linearPath(points: Point[], close: boolean, o: ResolvedOptions): OpSet {
+  const len = (points || []).length;
+  if (len > 2) {
+    const ops: Op[] = [];
+    for (let i = 0; i < (len - 1); i++) {
+      ops.push(..._doubleLine(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1], o));
+    }
+    if (close) {
+      ops.push(..._doubleLine(points[len - 1][0], points[len - 1][1], points[0][0], points[0][1], o));
+    }
+    return { type: 'path', ops };
+  } else if (len === 2) {
+    return line(points[0][0], points[0][1], points[1][0], points[1][1], o);
+  }
+  return { type: 'path', ops: [] };
+}
+
+export function polygon(points: Point[], o: ResolvedOptions): OpSet {
+  return linearPath(points, true, o);
+}
+
+export function rectangle(x: number, y: number, width: number, height: number, o: ResolvedOptions): OpSet {
+  const points: Point[] = [
+    [x, y],
+    [x + width, y],
+    [x + width, y + height],
+    [x, y + height],
+  ];
+  return polygon(points, o);
+}
+
+//rule: CanvasFillRule = 'nonzero'
+export function _drawToContext(ctx: CanvasRenderingContext2D, drawing: OpSet, fixedDecimals?: number) {
+  ctx.beginPath();
+  for (const item of drawing.ops) {
+    const data = ((typeof fixedDecimals === 'number') && fixedDecimals >= 0) ? (item.data.map((d) => +d.toFixed(fixedDecimals))) : item.data;
+    switch (item.op) {
+      case 'move':
+        ctx.moveTo(data[0], data[1]);
+        break;
+      case 'bcurveTo':
+        ctx.bezierCurveTo(data[0], data[1], data[2], data[3], data[4], data[5]);
+        break;
+      case 'lineTo':
+        ctx.lineTo(data[0], data[1]);
+        break;
+    }
+  }
+  ctx.stroke();
+  // if (drawing.type === 'fillPath') {
+  //   ctx.fill(rule);
+  // } else {
+  //   ctx.stroke();
+  // }
+}

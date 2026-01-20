@@ -29,7 +29,7 @@ class Line extends Path<LineProps> {
   shape: LineShape;
 
   constructor(opts?: LineProps) {
-    console.log("line constructor")
+    console.log("line constructor", opts);
     super(opts);
   }
 
@@ -89,12 +89,12 @@ class Line extends Path<LineProps> {
     // }
 
     if (this.roughness) {
-      const rc = rough.canvas(null, ctx,{
+      const rc = rough.canvas(null, ctx, {
         options: {
-          roughness: this.roughness
-        }
+          roughness: this.roughness,
+        },
       });
-      console.log(rc)
+      console.log(rc);
       rc.line(x1, y1, x2, y2);
 
       // this.drawHandDrawnLine(ctx, x1, y1, x2, y2, this.roughness);
