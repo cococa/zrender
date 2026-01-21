@@ -41,8 +41,9 @@ class Polyline extends Path<PolylineProps> {
         if (this.roughness) {
             const rc = rough.canvas(ctx, {
                 options: {
-                    roughness: this.roughness,
-                },
+          roughness: this.roughness,
+          fillStyle: this.filler,
+        },
             });
             if (shape.points) {
                 rc.linearPath(shape.points as [number, number][]);

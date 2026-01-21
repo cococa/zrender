@@ -66,9 +66,12 @@ class Rect extends Path<RectProps> {
     }
 
     if (this.roughness && !shape.r) {
+      const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
       const rc = rough.canvas(ctx, {
         options: {
           roughness: this.roughness,
+          fillStyle: this.filler,
+          fill: fill,
         },
       });
       rc.rectangle(x, y, width, height);

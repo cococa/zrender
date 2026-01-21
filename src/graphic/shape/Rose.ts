@@ -52,10 +52,13 @@ class Rose extends Path<RoseProps> {
         let r;
 
         if (this.roughness) {
+            const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
             const rc = rough.canvas(ctx, {
                 options: {
-                    roughness: this.roughness,
-                },
+          roughness: this.roughness,
+          fillStyle: this.filler,
+          fill: fill,
+        },
             });
             const points: [number, number][] = [];
             points.push([x0, y0]);
@@ -75,7 +78,7 @@ class Rose extends Path<RoseProps> {
                     points.push([x, y]);
                 }
             }
-            rc.linearPath(points);
+            rc.polygon(points);
             return;
         }
 

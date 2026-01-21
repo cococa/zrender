@@ -9,7 +9,9 @@
     <div id="main" style="width: 1000px; height: 600px;"></div>
     <script type="text/javascript">
         var zr = zrender.init(document.getElementById('main'), {
-            roughness: 2
+            roughness: 1,
+            filler: 'zigzag',
+            renderer: 'svg' 
         });
 
         var shape = new zrender.Circle({
@@ -20,7 +22,7 @@
             },
             style: {
                 stroke: '#000',
-                fill: 'rgba(255, 0, 0, 0.2)',
+                fill: 'red',
                 lineWidth: 2
             }
         });

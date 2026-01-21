@@ -8,28 +8,28 @@
  * https://github.com/ecomfe/zrender/blob/master/LICENSE.txt
  */
 
-import env from "./core/env";
-import * as zrUtil from "./core/util";
-import Handler from "./Handler";
-import Storage from "./Storage";
-import { PainterBase } from "./PainterBase";
-import Animation, { getTime } from "./animation/Animation";
-import HandlerProxy from "./dom/HandlerProxy";
-import Element, { ElementEventCallback } from "./Element";
+import env from './core/env';
+import * as zrUtil from './core/util';
+import Handler from './Handler';
+import Storage from './Storage';
+import { PainterBase } from './PainterBase';
+import Animation, { getTime } from './animation/Animation';
+import HandlerProxy from './dom/HandlerProxy';
+import Element, { ElementEventCallback } from './Element';
 import {
   Dictionary,
   ElementEventName,
   RenderedEvent,
   WithThisType,
-} from "./core/types";
-import { LayerConfig } from "./canvas/Layer";
-import { GradientObject } from "./graphic/Gradient";
-import { PatternObject } from "./graphic/Pattern";
-import { EventCallback } from "./core/Eventful";
-import Displayable from "./graphic/Displayable";
-import { lum } from "./tool/color";
-import { DARK_MODE_THRESHOLD } from "./config";
-import Group from "./graphic/Group";
+} from './core/types';
+import { LayerConfig } from './canvas/Layer';
+import { GradientObject } from './graphic/Gradient';
+import { PatternObject } from './graphic/Pattern';
+import { EventCallback } from './core/Eventful';
+import Displayable from './graphic/Displayable';
+import { lum } from './tool/color';
+import { DARK_MODE_THRESHOLD } from './config';
+import Group from './graphic/Group';
 
 type PainterBaseCtor = {
   new (dom: HTMLElement, storage: Storage, ...args: any[]): PainterBase;
@@ -49,7 +49,7 @@ function isDarkMode(
   if (!backgroundColor) {
     return false;
   }
-  if (typeof backgroundColor === "string") {
+  if (typeof backgroundColor === 'string') {
     return lum(backgroundColor, 1) < DARK_MODE_THRESHOLD;
   } else if ((backgroundColor as GradientObject).colorStops) {
     const colorStops = (backgroundColor as GradientObject).colorStops;
@@ -81,6 +81,7 @@ class ZRender {
   animation: Animation;
 
   roughness: number;
+  filler: string;
 
   private _sleepAfterStill = 10;
 
@@ -108,16 +109,16 @@ class ZRender {
 
     const storage = new Storage();
 
-    let rendererType = opts.renderer || "canvas";
+    let rendererType = opts.renderer || 'canvas';
 
-    console.log("opts.roughness", opts.roughness);
     this.roughness = opts.roughness || 0;
+  this.filler = opts.filler || 'hachure';
 
-    if (!painterCtors[rendererType]) {
+  if (!painterCtors[rendererType]) {
       // Use the first registered renderer.
       rendererType = zrUtil.keys(painterCtors)[0];
     }
-    if (process.env.NODE_ENV !== "production") {
+    if (process.env.NODE_ENV !== 'production') {
       if (!painterCtors[rendererType]) {
         throw new Error(
           `Renderer '${rendererType}' is not imported. Please import it first.`
@@ -140,7 +141,7 @@ class ZRender {
 
     const useCoarsePointer = opts.useCoarsePointer;
     const usePointerSize =
-      useCoarsePointer == null || useCoarsePointer === "auto"
+      useCoarsePointer == null || useCoarsePointer === 'auto'
         ? env.touchEventsSupported
         : !!useCoarsePointer;
     const defaultPointerSize = 44;
@@ -172,11 +173,11 @@ class ZRender {
    * 添加元素
    */
   add(el: Element) {
-    console.log("zrender init add", el.id , el);
     if (this._disposed || !el) {
       return;
     }
     el.roughness = this.roughness;
+    el.filler = this.filler;
     this.storage.addRoot(el);
     el.addSelfToZr(this);
     this.refresh();
@@ -528,6 +529,7 @@ export interface ZRenderInitOpt {
   pointerSize?: number;
   ssr?: boolean; // If enable ssr mode.
   roughness?: number; //手绘粗糙度 0为正常 大于0为手绘风格
+  filler?: string; // 填充风格 hachure/zigzag/cross-hatch/dots/dashed/zigzag-line
 }
 
 /**
@@ -536,6 +538,7 @@ export interface ZRenderInitOpt {
  * @param dom Not necessary if using SSR painter like svg-ssr
  */
 export function init(dom?: HTMLElement | null, opts?: ZRenderInitOpt) {
+  console.log("zrender init opts", opts);
   const zr = new ZRender(zrUtil.guid(), dom, opts);
   instances[zr.id] = zr;
   return zr;
@@ -577,7 +580,7 @@ export type ElementSSRDataGetter<T> = (el: Element) => zrUtil.HashMap<T>;
 let ssrDataGetter: ElementSSRDataGetter<unknown>;
 
 export function getElementSSRData(el: Element): ElementSSRData {
-  if (typeof ssrDataGetter === "function") {
+  if (typeof ssrDataGetter === 'function') {
     return ssrDataGetter(el);
   }
 }
@@ -589,6 +592,6 @@ export function registerSSRDataGetter<T>(getter: ElementSSRDataGetter<T>) {
 /**
  * @type {string}
  */
-export const version = "5.6.0";
+export const version = '5.6.0';
 
 export interface ZRenderType extends ZRender {}

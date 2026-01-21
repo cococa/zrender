@@ -9,7 +9,7 @@
     <div id="main" style="width: 1000px; height: 600px;"></div>
     <script type="text/javascript">
         var zr = zrender.init(document.getElementById('main'), {
-            roughness: 1
+            roughness: 2
         });
 
         var shape = new zrender.Line({
@@ -20,8 +20,8 @@
                 y2: 400
             },
             style: {
-                stroke: '#000',
-                lineWidth: 2
+                stroke: '#00ff00',
+                lineWidth: 1
             }
         });
         zr.add(shape);

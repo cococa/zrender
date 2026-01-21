@@ -293,8 +293,8 @@ interface Element<Props extends ElementProps = ElementProps> extends Transformab
 
 class Element<Props extends ElementProps = ElementProps> {
 
-    roughness: number 
-
+    roughness: number
+    filler: string
 
     id: number = guid()
     /**
@@ -1414,11 +1414,21 @@ class Element<Props extends ElementProps = ElementProps> {
      * Not recursively because it will be invoked when element added to storage.
      */
     addSelfToZr(zr: ZRenderType) {
+        // 始终从 ZRender 实例同步 roughness 和 filler 属性
+        // 只有当元素没有显式设置这些属性时才从 ZRender 继承
+        if (zr.roughness != null && this.roughness == null) {
+            this.roughness = zr.roughness;
+        }
+        if (zr.filler != null && this.filler == null) {
+            this.filler = zr.filler;
+        }
+        
         if (this.__zr === zr) {
             return;
         }
 
         this.__zr = zr;
+        
         // 添加动画
         const animators = this.animators;
         if (animators) {
@@ -1814,8 +1824,8 @@ function copyValue(target: Dictionary<any>, source: Dictionary<any>, key: string
         if (isTypedArray(source[key])) {
             const len = source[key].length;
             if (target[key].length !== len) {
-                target[key] = new (source[key].constructor)(len);
-                copyArrShallow(target[key], source[key], len);
+                target[key] = new (source[key].constructor as any)(len);
+                copyArrShallow(target[key] as any, source[key] as any, len);
             }
         }
         else {

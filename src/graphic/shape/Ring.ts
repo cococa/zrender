@@ -33,10 +33,13 @@ class Ring extends Path<RingProps> {
         const PI2 = Math.PI * 2;
 
         if (this.roughness) {
+            const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
             const rc = rough.canvas(ctx, {
                 options: {
-                    roughness: this.roughness,
-                },
+          roughness: this.roughness,
+          fillStyle: this.filler,
+          fill: fill,
+        },
             });
             const r = shape.r;
             const r0 = shape.r0;

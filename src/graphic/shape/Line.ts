@@ -77,6 +77,7 @@ class Line extends Path<LineProps> {
       const rc = rough.canvas(ctx, {
         options: {
           roughness: this.roughness,
+          fillStyle: this.filler,
         },
       });
       rc.line(x1, y1, x2, y2);

@@ -29,10 +29,13 @@ class Ellipse extends Path<EllipseProps> {
 
     buildPath(ctx: CanvasRenderingContext2D, shape: EllipseShape) {
         if (this.roughness) {
+            const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
             const rc = rough.canvas(ctx, {
                 options: {
-                    roughness: this.roughness,
-                },
+          roughness: this.roughness,
+          fillStyle: this.filler,
+          fill: fill,
+        },
             });
             rc.ellipse(shape.cx, shape.cy, shape.rx * 2, shape.ry * 2);
             return;

@@ -9,10 +9,11 @@ import {
     ellipse,
     linearPath,
     polygon,
-    OpSet
+    OpSet,
+    Op
 } from './draw';
 
-function drawOpsToContext(ctx: CanvasRenderingContext2D, opSet: OpSet) {
+function drawOpsToContext(ctx: any, opSet: OpSet) {
     for (const item of opSet.ops) {
         const data = item.data;
         switch (item.op) {
@@ -214,15 +215,18 @@ class RoughPathWalker {
 }
 
 export class RoughCanvas {
-    private ctx: CanvasRenderingContext2D;
+    private ctx: any;
     private config: any;
 
-    constructor(canvas: HTMLCanvasElement | CanvasRenderingContext2D, config?: any) {
-        if (canvas instanceof CanvasRenderingContext2D) {
+    constructor(canvas: any, config?: any) {
+        if (canvas.moveTo && canvas.lineTo) {
             this.ctx = canvas;
         }
+        else if (canvas.getContext) {
+            this.ctx = canvas.getContext('2d');
+        }
         else {
-            this.ctx = canvas.getContext('2d')!;
+            this.ctx = canvas;
         }
         this.config = config || {};
     }
@@ -233,40 +237,107 @@ export class RoughCanvas {
         return _o(merged);
     }
 
+    private _drawFillOps(ops: Op[], o: ResolvedOptions) {
+        if (!ops || !ops.length) {
+            return;
+        }
+        const ctx = this.ctx;
+        // 如果是 PathProxy (没有 save 方法)，则不调用 save/restore/stroke/beginPath
+        // 这样可以将所有路径指令累积到 PathProxy 中
+        const isPathProxy = typeof ctx.save !== 'function';
+
+        if (!isPathProxy) {
+            ctx.save();
+            ctx.beginPath();
+        }
+
+        drawOpsToContext(ctx, { type: 'fillSketch', ops: ops });
+        if (o.fill && !isPathProxy) {
+            ctx.strokeStyle = o.fill;
+        }
+        if (!isPathProxy) {
+            ctx.stroke();
+            ctx.restore();
+            ctx.beginPath();
+        }
+    }
+
     line(x1: number, y1: number, x2: number, y2: number, options?: Options) {
         const o = this._getOptions(options);
         const ops = line(x1, y1, x2, y2, o);
         drawOpsToContext(this.ctx, ops);
+        const isPathProxy = typeof this.ctx.save !== 'function';
+        if (!isPathProxy) {
+            this.ctx.stroke();
+            this.ctx.beginPath();
+        }
     }
 
     rectangle(x: number, y: number, width: number, height: number, options?: Options) {
         const o = this._getOptions(options);
         const ops = rectangle(x, y, width, height, o);
+        if (ops.fillOps) {
+            this._drawFillOps(ops.fillOps, o);
+        }
         drawOpsToContext(this.ctx, ops);
+        const isPathProxy = typeof this.ctx.save !== 'function';
+        if (!isPathProxy) {
+            this.ctx.stroke();
+            this.ctx.beginPath();
+        }
     }
 
     circle(x: number, y: number, diameter: number, options?: Options) {
         const o = this._getOptions(options);
         const ops = circle(x, y, diameter, o);
+        if (ops.fillOps) {
+            this._drawFillOps(ops.fillOps, o);
+        }
         drawOpsToContext(this.ctx, ops);
+        const isPathProxy = typeof this.ctx.save !== 'function';
+        if (!isPathProxy) {
+            this.ctx.stroke();
+            this.ctx.beginPath();
+        }
     }
 
     ellipse(x: number, y: number, width: number, height: number, options?: Options) {
         const o = this._getOptions(options);
         const ops = ellipse(x, y, width, height, o);
+        if (ops.fillOps) {
+            this._drawFillOps(ops.fillOps, o);
+        }
         drawOpsToContext(this.ctx, ops);
+        const isPathProxy = typeof this.ctx.save !== 'function';
+        if (!isPathProxy) {
+            this.ctx.stroke();
+            this.ctx.beginPath();
+        }
     }
 
     linearPath(points: [number, number][], options?: Options) {
         const o = this._getOptions(options);
         const ops = linearPath(points, false, o);
         drawOpsToContext(this.ctx, ops);
+        const isPathProxy = typeof this.ctx.save !== 'function';
+        if (!isPathProxy) {
+            this.ctx.stroke();
+            this.ctx.beginPath();
+        }
     }
 
     polygon(points: [number, number][], options?: Options) {
         const o = this._getOptions(options);
         const ops = polygon(points, o);
+        if (ops.fillOps) {
+            this._drawFillOps(ops.fillOps, o);
+        }
         drawOpsToContext(this.ctx, ops);
+        const isPathProxy = typeof this.ctx.save !== 'function';
+        if (!isPathProxy) {
+            this.ctx.stroke();
+            this.ctx.beginPath();
+        }
     }
 
     arc(

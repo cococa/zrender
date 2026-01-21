@@ -152,8 +152,17 @@ class Group extends Element<GroupProps> {
 
         const zr = this.__zr;
         if (zr && zr !== (child as Group).__zr) {    // Only group has __storage
-
             child.addSelfToZr(zr);
+        }
+        // 即使子元素已经有相同的 __zr，也要确保 roughness 和 filler 属性被同步
+        else if (zr && zr === (child as Group).__zr) {
+            // 同步 roughness 和 filler 属性
+            if (zr.roughness != null && child.roughness == null) {
+                child.roughness = zr.roughness;
+            }
+            if (zr.filler != null && child.filler == null) {
+                child.filler = zr.filler;
+            }
         }
 
         zr && zr.refresh();

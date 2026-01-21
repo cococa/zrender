@@ -31,10 +31,13 @@ class Polygon extends Path<PolygonProps> {
 
     buildPath(ctx: CanvasRenderingContext2D, shape: PolygonShape) {
         if (this.roughness) {
+            const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
             const rc = rough.canvas(ctx, {
                 options: {
-                    roughness: this.roughness,
-                },
+          roughness: this.roughness,
+          fillStyle: this.filler,
+          fill: fill,
+        },
             });
             // roughjs polygon expects [number, number][]
             // shape.points is VectorArray[] which is number[][]

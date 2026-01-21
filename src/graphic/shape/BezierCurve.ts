@@ -106,10 +106,13 @@ class BezierCurve extends Path<BezierCurveProps> {
         }
 
         if (this.roughness) {
+            const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
             const rc = rough.canvas(ctx, {
                 options: {
-                    roughness: this.roughness,
-                },
+          roughness: this.roughness,
+          fillStyle: this.filler,
+          fill: fill,
+        },
             });
             let d = `M ${x1} ${y1}`;
             if (cpx2 == null || cpy2 == null) {

@@ -1,80 +1,51 @@
-import { Random } from "./math";
+import { Random } from './math';
+import { Point } from './geometry';
+import { ResolvedOptions, Options, OpSet, Op } from './core';
+import { RenderHelper } from './fillers/filler-interface';
+import { getFiller } from './fillers/filler';
 
-export interface Options {
-  maxRandomnessOffset?: number;
-  roughness?: number;
-  bowing?: number;
-  stroke?: string;
-  strokeWidth?: number;
-  curveFitting?: number;
-  curveTightness?: number;
-  curveStepCount?: number;
-  fill?: string;
-  fillStyle?: string;
-  fillWeight?: number;
-  hachureAngle?: number;
-  hachureGap?: number;
-  simplification?: number;
-  dashOffset?: number;
-  dashGap?: number;
-  zigzagOffset?: number;
-  seed?: number;
-  strokeLineDash?: number[];
-  strokeLineDashOffset?: number;
-  fillLineDash?: number[];
-  fillLineDashOffset?: number;
-  disableMultiStroke?: boolean;
-  disableMultiStrokeFill?: boolean;
-  preserveVertices?: boolean;
-  fixedDecimalPlaceDigits?: number;
-  fillShapeRoughnessGain?: number;
+export * from './core';
+export * from './geometry';
+
+class RoughRenderHelper implements RenderHelper {
+  randOffset(x: number, o: ResolvedOptions): number {
+    return _offsetOpt(x, o);
+  }
+  randOffsetWithRange(min: number, max: number, o: ResolvedOptions): number {
+    return _offset(min, max, o);
+  }
+  ellipse(x: number, y: number, width: number, height: number, o: ResolvedOptions): OpSet {
+    const ellipseParams = generateEllipseParams(width, height, o);
+    const ellipseResponse = ellipseWithParams(x, y, o, ellipseParams);
+    return ellipseResponse.opset;
+  }
+  doubleLineOps(x1: number, y1: number, x2: number, y2: number, o: ResolvedOptions): Op[] {
+    return _doubleLine(x1, y1, x2, y2, o);
+  }
 }
 
-export interface ResolvedOptions extends Options {
-  maxRandomnessOffset: number;
-  roughness: number;
-  bowing: number;
-  stroke: string;
-  strokeWidth: number;
-  curveFitting: number;
-  curveTightness: number;
-  curveStepCount: number;
-  fillStyle: string;
-  fillWeight: number;
-  hachureAngle: number;
-  hachureGap: number;
-  dashOffset: number;
-  dashGap: number;
-  zigzagOffset: number;
-  seed: number;
-  randomizer?: Random;
-  disableMultiStroke: boolean;
-  disableMultiStrokeFill: boolean;
-  preserveVertices: boolean;
-  fillShapeRoughnessGain: number;
-}
-
-interface EllipseParams {
-  rx: number;
-  ry: number;
-  increment: number;
-}
-export type Point = [number, number];
-
-export declare type OpType = "move" | "bcurveTo" | "lineTo";
-export declare type OpSetType = "path" | "fillPath" | "fillSketch";
-
-export interface Op {
-  op: OpType;
-  data: number[];
-}
-
-export interface OpSet {
-  type: OpSetType;
-  ops: Op[];
-  size?: Point;
-  path?: string;
-}
+export const defaultOptions: ResolvedOptions = {
+  maxRandomnessOffset: 2,
+  roughness: 1,
+  bowing: 1,
+  stroke: '#000',
+  strokeWidth: 1,
+  curveTightness: 0,
+  curveFitting: 0.95,
+  curveStepCount: 9,
+  fillStyle: 'hachure',
+  fillWeight: -1,
+  hachureAngle: -41,
+  hachureGap: -1,
+  dashOffset: -1,
+  dashGap: -1,
+  zigzagOffset: -1,
+  seed: 0,
+  disableMultiStroke: false,
+  disableMultiStrokeFill: false,
+  preserveVertices: false,
+  fillShapeRoughnessGain: 0.8,
+};
 
 export interface EllipseResult {
   opset: OpSet;
@@ -119,9 +90,11 @@ function _line(
   let roughnessGain = 1;
   if (length < 200) {
     roughnessGain = 1;
-  } else if (length > 500) {
+  }
+  else if (length > 500) {
     roughnessGain = 0.4;
-  } else {
+  }
+  else {
     roughnessGain = -0.0016668 * length + 1.233334;
   }
 
@@ -142,15 +115,16 @@ function _line(
   if (move) {
     if (overlay) {
       ops.push({
-        op: "move",
+        op: 'move',
         data: [
           x1 + (preserveVertices ? 0 : randomHalf()),
           y1 + (preserveVertices ? 0 : randomHalf()),
         ],
       });
-    } else {
+    }
+    else {
       ops.push({
-        op: "move",
+        op: 'move',
         data: [
           x1 + (preserveVertices ? 0 : _offsetOpt(offset, o, roughnessGain)),
           y1 + (preserveVertices ? 0 : _offsetOpt(offset, o, roughnessGain)),
@@ -160,7 +134,7 @@ function _line(
   }
   if (overlay) {
     ops.push({
-      op: "bcurveTo",
+      op: 'bcurveTo',
       data: [
         midDispX + x1 + (x2 - x1) * divergePoint + randomHalf(),
         midDispY + y1 + (y2 - y1) * divergePoint + randomHalf(),
@@ -170,9 +144,10 @@ function _line(
         y2 + (preserveVertices ? 0 : randomHalf()),
       ],
     });
-  } else {
+  }
+  else {
     ops.push({
-      op: "bcurveTo",
+      op: 'bcurveTo',
       data: [
         midDispX + x1 + (x2 - x1) * divergePoint + randomFull(),
         midDispY + y1 + (y2 - y1) * divergePoint + randomFull(),
@@ -186,15 +161,21 @@ function _line(
   return ops;
 }
 
+export interface EllipseParams {
+  rx: number;
+  ry: number;
+  increment: number;
+}
+
 export function generateEllipseParams(
   width: number,
   height: number,
   o: ResolvedOptions
-): any {
+): EllipseParams {
   const psq = Math.sqrt(
-    Math.PI *
-      2 *
-      Math.sqrt((Math.pow(width / 2, 2) + Math.pow(height / 2, 2)) / 2)
+    Math.PI
+    * 2
+    * Math.sqrt((Math.pow(width / 2, 2) + Math.pow(height / 2, 2)) / 2)
   );
   const stepCount = Math.ceil(
     Math.max(o.curveStepCount, (o.curveStepCount / Math.sqrt(200)) * psq)
@@ -238,7 +219,8 @@ function _computeEllipsePoints(
       cx + rx * Math.cos(increment),
       cy + ry * Math.sin(increment),
     ]);
-  } else {
+  }
+  else {
     const radOffset = _offsetOpt(0.5, o) - Math.PI / 2;
     allPoints.push([
       _offsetOpt(offset, o) + cx + 0.9 * rx * Math.cos(radOffset - increment),
@@ -254,24 +236,24 @@ function _computeEllipsePoints(
       allPoints.push(p);
     }
     allPoints.push([
-      _offsetOpt(offset, o) +
-        cx +
-        rx * Math.cos(radOffset + Math.PI * 2 + overlap * 0.5),
-      _offsetOpt(offset, o) +
-        cy +
-        ry * Math.sin(radOffset + Math.PI * 2 + overlap * 0.5),
+      _offsetOpt(offset, o)
+      + cx
+      + rx * Math.cos(radOffset + Math.PI * 2 + overlap * 0.5),
+      _offsetOpt(offset, o)
+      + cy
+      + ry * Math.sin(radOffset + Math.PI * 2 + overlap * 0.5),
     ]);
     allPoints.push([
       _offsetOpt(offset, o) + cx + 0.98 * rx * Math.cos(radOffset + overlap),
       _offsetOpt(offset, o) + cy + 0.98 * ry * Math.sin(radOffset + overlap),
     ]);
     allPoints.push([
-      _offsetOpt(offset, o) +
-        cx +
-        0.9 * rx * Math.cos(radOffset + overlap * 0.5),
-      _offsetOpt(offset, o) +
-        cy +
-        0.9 * ry * Math.sin(radOffset + overlap * 0.5),
+      _offsetOpt(offset, o)
+      + cx
+      + 0.9 * rx * Math.cos(radOffset + overlap * 0.5),
+      _offsetOpt(offset, o)
+      + cy
+      + 0.9 * ry * Math.sin(radOffset + overlap * 0.5),
     ]);
   }
 
@@ -288,7 +270,7 @@ function _curve(
   if (len > 3) {
     const b = [];
     const s = 1 - o.curveTightness;
-    ops.push({ op: "move", data: [points[1][0], points[1][1]] });
+    ops.push({ op: 'move', data: [points[1][0], points[1][1]] });
     for (let i = 1; i + 2 < len; i++) {
       const cachedVertArray = points[i];
       b[0] = [cachedVertArray[0], cachedVertArray[1]];
@@ -302,24 +284,25 @@ function _curve(
       ];
       b[3] = [points[i + 1][0], points[i + 1][1]];
       ops.push({
-        op: "bcurveTo",
+        op: 'bcurveTo',
         data: [b[1][0], b[1][1], b[2][0], b[2][1], b[3][0], b[3][1]],
       });
     }
     if (closePoint && closePoint.length === 2) {
       const ro = o.maxRandomnessOffset;
       ops.push({
-        op: "lineTo",
+        op: 'lineTo',
         data: [
           closePoint[0] + _offsetOpt(ro, o),
           closePoint[1] + _offsetOpt(ro, o),
         ],
       });
     }
-  } else if (len === 3) {
-    ops.push({ op: "move", data: [points[1][0], points[1][1]] });
+  }
+  else if (len === 3) {
+    ops.push({ op: 'move', data: [points[1][0], points[1][1]] });
     ops.push({
-      op: "bcurveTo",
+      op: 'bcurveTo',
       data: [
         points[1][0],
         points[1][1],
@@ -329,7 +312,8 @@ function _curve(
         points[2][1],
       ],
     });
-  } else if (len === 2) {
+  }
+  else if (len === 2) {
     ops.push(
       ..._line(
         points[0][0],
@@ -378,13 +362,14 @@ export function ellipseWithParams(
   }
   return {
     estimatedPoints: cp1,
-    opset: { type: "path", ops: o1 },
+    opset: { type: 'path', ops: o1 },
   };
 }
 
-//   export function patternFillPolygons(polygonList: Point[][], o: ResolvedOptions): OpSet {
-//     return getFiller(o, helper).fillPolygons(polygonList, o);
-//   }
+export function patternFillPolygons(polygonList: Point[][], o: ResolvedOptions): OpSet {
+  const helper = new RoughRenderHelper();
+  return getFiller(o, helper).fillPolygons(polygonList, o);
+}
 
 export function _o(options?: Options): ResolvedOptions {
   return options ? Object.assign({}, defaultOptions, options) : defaultOptions;
@@ -400,6 +385,14 @@ export function ellipse(
   const o = _o(options);
   const ellipseParams = generateEllipseParams(width, height, o);
   const ellipseResponse = ellipseWithParams(x, y, o, ellipseParams);
+  if (o.fill) {
+    const fillOps = patternFillPolygons([ellipseResponse.estimatedPoints], o);
+    return {
+      type: 'path',
+      ops: ellipseResponse.opset.ops,
+      fillOps: fillOps.ops
+    };
+  }
   return ellipseResponse.opset;
 }
 
@@ -413,32 +406,6 @@ export function circle(
   return ret;
 }
 
-export const defaultOptions: ResolvedOptions = {
-  maxRandomnessOffset: 2,
-  roughness: 1,
-  bowing: 1,
-  stroke: "#000",
-  strokeWidth: 1,
-  curveTightness: 0,
-  curveFitting: 0.95,
-  curveStepCount: 9,
-  fillStyle: "hachure",
-  fillWeight: -1,
-  hachureAngle: -41,
-  hachureGap: -1,
-  dashOffset: -1,
-  dashGap: -1,
-  zigzagOffset: -1,
-  seed: 0,
-  disableMultiStroke: false,
-  disableMultiStrokeFill: false,
-  preserveVertices: false,
-  fillShapeRoughnessGain: 0.8,
-};
-
-
-
-
 function _doubleLine(x1: number, y1: number, x2: number, y2: number, o: ResolvedOptions, filling = false): Op[] {
   const singleStroke = filling ? o.disableMultiStrokeFill : o.disableMultiStroke;
   const o1 = _line(x1, y1, x2, y2, o, true, false);
@@ -448,7 +415,6 @@ function _doubleLine(x1: number, y1: number, x2: number, y2: number, o: Resolved
   const o2 = _line(x1, y1, x2, y2, o, true, true);
   return o1.concat(o2);
 }
-
 
 export function line(x1: number, y1: number, x2: number, y2: number, o: ResolvedOptions): OpSet {
   return { type: 'path', ops: _doubleLine(x1, y1, x2, y2, o) };
@@ -465,14 +431,24 @@ export function linearPath(points: Point[], close: boolean, o: ResolvedOptions):
       ops.push(..._doubleLine(points[len - 1][0], points[len - 1][1], points[0][0], points[0][1], o));
     }
     return { type: 'path', ops };
-  } else if (len === 2) {
+  }
+  else if (len === 2) {
     return line(points[0][0], points[0][1], points[1][0], points[1][1], o);
   }
   return { type: 'path', ops: [] };
 }
 
 export function polygon(points: Point[], o: ResolvedOptions): OpSet {
-  return linearPath(points, true, o);
+  const outline = linearPath(points, true, o);
+  if (o.fill) {
+    const fillOps = patternFillPolygons([points], o);
+    return {
+      type: 'path',
+      ops: outline.ops,
+      fillOps: fillOps.ops
+    };
+  }
+  return outline;
 }
 
 export function rectangle(x: number, y: number, width: number, height: number, o: ResolvedOptions): OpSet {
@@ -485,11 +461,12 @@ export function rectangle(x: number, y: number, width: number, height: number, o
   return polygon(points, o);
 }
 
-//rule: CanvasFillRule = 'nonzero'
 export function _drawToContext(ctx: CanvasRenderingContext2D, drawing: OpSet, fixedDecimals?: number) {
   ctx.beginPath();
   for (const item of drawing.ops) {
-    const data = ((typeof fixedDecimals === 'number') && fixedDecimals >= 0) ? (item.data.map((d) => +d.toFixed(fixedDecimals))) : item.data;
+    const data = ((typeof fixedDecimals === 'number') && fixedDecimals >= 0)
+      ? (item.data.map((d) => +d.toFixed(fixedDecimals)))
+      : item.data;
     switch (item.op) {
       case 'move':
         ctx.moveTo(data[0], data[1]);
@@ -503,9 +480,4 @@ export function _drawToContext(ctx: CanvasRenderingContext2D, drawing: OpSet, fi
     }
   }
   ctx.stroke();
-  // if (drawing.type === 'fillPath') {
-  //   ctx.fill(rule);
-  // } else {
-  //   ctx.stroke();
-  // }
 }

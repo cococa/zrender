@@ -9,7 +9,9 @@
     <div id="main" style="width: 1000px; height: 600px;"></div>
     <script type="text/javascript">
         var zr = zrender.init(document.getElementById('main'), {
-            roughness: 5
+            roughness: 1,
+            renderer: 'svg',
+            filler: 'cross-hatch'
         });
 
         var shape = new zrender.Rect({
@@ -20,7 +22,7 @@
                 height: 200
             },
             style: {
-                stroke: '#000',
+                stroke: 'red',
                 fill: 'rgba(128, 0, 128, 0.2)',
                 lineWidth: 1
             }

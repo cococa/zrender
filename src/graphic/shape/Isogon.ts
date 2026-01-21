@@ -45,10 +45,13 @@ class Isogon extends Path<IsogonProps> {
         let deg = -PI / 2;
 
         if (this.roughness) {
+            const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
             const rc = rough.canvas(ctx, {
                 options: {
-                    roughness: this.roughness,
-                },
+          roughness: this.roughness,
+          fillStyle: this.filler,
+          fill: fill,
+        },
             });
             const points: [number, number][] = [];
             for (let i = 0; i < n; i++) {

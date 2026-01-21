@@ -18,7 +18,6 @@ class Circle extends Path<CircleProps> {
   shape: CircleShape;
 
   constructor(opts?: CircleProps) {
-    
     super(opts);
   }
 
@@ -31,9 +30,12 @@ class Circle extends Path<CircleProps> {
     // Or it will be connected to other subpaths when in CompoundPath
 
     if (this.roughness) {
+      const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
       const rc = rough.canvas(ctx, {
         options: {
           roughness: this.roughness,
+          fillStyle: this.filler,
+          fill: fill,
         },
       });
       rc.circle(shape.cx, shape.cy, shape.r * 2);

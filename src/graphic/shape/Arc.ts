@@ -2,7 +2,7 @@
  * 圆弧
  */
 
-import Path, { PathProps } from "../Path";
+import Path, { PathProps } from '../Path';
 import rough from '../../handdrawn/RoughCanvas';
 
 export class ArcShape {
@@ -27,7 +27,7 @@ class Arc extends Path<ArcProps> {
 
   getDefaultStyle() {
     return {
-      stroke: "#000",
+      stroke: '#000',
       fill: null as string,
     };
   }
@@ -48,9 +48,12 @@ class Arc extends Path<ArcProps> {
     const unitY = Math.sin(startAngle);
 
     if (this.roughness) {
+      const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
       const rc = rough.canvas(ctx, {
         options: {
           roughness: this.roughness,
+          fillStyle: this.filler,
+          fill: fill,
         },
       });
       rc.arc(x, y, r, startAngle, endAngle, !clockwise);

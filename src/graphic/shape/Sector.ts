@@ -44,10 +44,13 @@ class Sector extends Path<SectorProps> {
 
     buildPath(ctx: CanvasRenderingContext2D, shape: SectorShape) {
         if (this.roughness) {
+            const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
             const rc = rough.canvas(ctx, {
                 options: {
-                    roughness: this.roughness,
-                },
+          roughness: this.roughness,
+          fillStyle: this.filler,
+          fill: fill,
+        },
             });
 
             const recorder = {

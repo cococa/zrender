@@ -34,10 +34,13 @@ class Droplet extends Path<DropletProps> {
         const b = shape.height;
 
         if (this.roughness) {
+            const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
             const rc = rough.canvas(ctx, {
                 options: {
-                    roughness: this.roughness,
-                },
+          roughness: this.roughness,
+          fillStyle: this.filler,
+          fill: fill,
+        },
             });
             const d = `M ${x} ${y + a} C ${x + a} ${y + a} ${x + a * 3 / 2} ${y - a / 3} ${x} ${y - b} `
                 + `C ${x - a * 3 / 2} ${y - a / 3} ${x - a} ${y + a} ${x} ${y + a} Z`;
