@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Test Arc</title>
+    <script src="../../dist/zrender.js"></script>
+</head>
+<body>
+    <div id="main" style="width: 1000px; height: 600px;"></div>
+    <script type="text/javascript">
+        var zr = zrender.init(document.getElementById('main'), {
+            roughness: 1
+        });
+
+        var shape = new zrender.Arc({
+            shape: {
+                cx: 300,
+                cy: 300,
+                r: 100,
+                startAngle: 0,
+                endAngle: Math.PI * 1.5,
+                clockwise: true
+            },
+            style: {
+                stroke: '#000',
+                fill: 'rgba(255, 0, 0, 0.2)',
+                lineWidth: 2
+            }
+        });
+        zr.add(shape);
+    </script>
+</body>
+</html>

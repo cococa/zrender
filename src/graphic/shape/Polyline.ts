@@ -5,6 +5,7 @@
 import Path, { PathProps } from '../Path';
 import * as polyHelper from '../helper/poly';
 import { VectorArray } from '../../core/vector';
+import rough from '../../handdrawn/RoughCanvas';
 
 export class PolylineShape {
     points: VectorArray[] = null
@@ -37,6 +38,17 @@ class Polyline extends Path<PolylineProps> {
     }
 
     buildPath(ctx: CanvasRenderingContext2D, shape: PolylineShape) {
+        if (this.roughness) {
+            const rc = rough.canvas(ctx, {
+                options: {
+                    roughness: this.roughness,
+                },
+            });
+            if (shape.points) {
+                rc.linearPath(shape.points as [number, number][]);
+            }
+            return;
+        }
         polyHelper.buildPath(ctx, shape, false);
     }
 }

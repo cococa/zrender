@@ -3,6 +3,7 @@
  */
 
 import Path, { PathProps } from '../Path';
+import rough from '../../handdrawn/RoughCanvas';
 
 const PI = Math.PI;
 const sin = Math.sin;
@@ -42,6 +43,21 @@ class Isogon extends Path<IsogonProps> {
 
         const dStep = 2 * PI / n;
         let deg = -PI / 2;
+
+        if (this.roughness) {
+            const rc = rough.canvas(ctx, {
+                options: {
+                    roughness: this.roughness,
+                },
+            });
+            const points: [number, number][] = [];
+            for (let i = 0; i < n; i++) {
+                points.push([x + r * cos(deg), y + r * sin(deg)]);
+                deg += dStep;
+            }
+            rc.polygon(points);
+            return;
+        }
 
         ctx.moveTo(x + r * cos(deg), y + r * sin(deg));
         for (let i = 0, end = n - 1; i < end; i++) {

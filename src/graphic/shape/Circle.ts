@@ -2,8 +2,8 @@
  * 圆形
  */
 
-import Path, { PathProps } from "../Path";
-import rough from "roughjs";
+import Path, { PathProps } from '../Path';
+import rough from '../../handdrawn/RoughCanvas';
 
 export class CircleShape {
   cx = 0;
@@ -31,7 +31,7 @@ class Circle extends Path<CircleProps> {
     // Or it will be connected to other subpaths when in CompoundPath
 
     if (this.roughness) {
-      const rc = rough.canvas(null, ctx, {
+      const rc = rough.canvas(ctx, {
         options: {
           roughness: this.roughness,
         },
@@ -45,6 +45,6 @@ class Circle extends Path<CircleProps> {
   }
 }
 
-Circle.prototype.type = "circle";
+Circle.prototype.type = 'circle';
 
 export default Circle;

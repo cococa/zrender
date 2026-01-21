@@ -4,6 +4,7 @@
  */
 
 import Path, { PathProps } from '../Path';
+import rough from '../../handdrawn/RoughCanvas';
 
 const sin = Math.sin;
 const cos = Math.cos;
@@ -50,6 +51,33 @@ class Rose extends Path<RoseProps> {
         let y;
         let r;
 
+        if (this.roughness) {
+            const rc = rough.canvas(ctx, {
+                options: {
+                    roughness: this.roughness,
+                },
+            });
+            const points: [number, number][] = [];
+            points.push([x0, y0]);
+
+            for (let i = 0, len = R.length; i < len; i++) {
+                r = R[i];
+
+                for (let j = 0; j <= 360 * n; j++) {
+                    x = r
+                        * sin(k / n * j % 360 * radian)
+                        * cos(j * radian)
+                        + x0;
+                    y = r
+                        * sin(k / n * j % 360 * radian)
+                        * sin(j * radian)
+                        + y0;
+                    points.push([x, y]);
+                }
+            }
+            rc.linearPath(points);
+            return;
+        }
 
         ctx.moveTo(x0, y0);
 

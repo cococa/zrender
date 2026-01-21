@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Test Line</title>
+    <script src="../../dist/zrender.js"></script>
+</head>
+<body>
+    <div id="main" style="width: 1000px; height: 600px;"></div>
+    <script type="text/javascript">
+        var zr = zrender.init(document.getElementById('main'), {
+            roughness: 1
+        });
+
+        var shape = new zrender.Line({
+            shape: {
+                x1: 100,
+                y1: 100,
+                x2: 500,
+                y2: 400
+            },
+            style: {
+                stroke: '#000',
+                lineWidth: 2
+            }
+        });
+        zr.add(shape);
+    </script>
+</body>
+</html>

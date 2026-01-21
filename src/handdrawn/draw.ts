@@ -386,50 +386,30 @@ export function ellipseWithParams(
 //     return getFiller(o, helper).fillPolygons(polygonList, o);
 //   }
 
-function _o(options?: Options): ResolvedOptions {
+export function _o(options?: Options): ResolvedOptions {
   return options ? Object.assign({}, defaultOptions, options) : defaultOptions;
 }
 
-function ellipse(
+export function ellipse(
   x: number,
   y: number,
   width: number,
   height: number,
   options?: Options
-): any {
-  console.log("g ellipse", x, y, width, height, options);
+): OpSet {
   const o = _o(options);
-  const paths: OpSet[] = [];
   const ellipseParams = generateEllipseParams(width, height, o);
-  console.log("g ellipse ellipseParams", ellipseParams);
   const ellipseResponse = ellipseWithParams(x, y, o, ellipseParams);
-  console.log("g ellipse ellipseResponse", ellipseResponse);
-  if (o.fill) {
-    if (o.fillStyle === "solid") {
-      const shape = ellipseWithParams(x, y, o, ellipseParams).opset;
-      shape.type = "fillPath";
-      paths.push(shape);
-    } else {
-      // const x = patternFillPolygons([ellipseResponse.estimatedPoints], o)
-      // console.log('g ellipse x', x);
-      // paths.push(x);
-    }
-  }
-  // if (o.stroke !== NOS) {
-  //   paths.push(ellipseResponse.opset);
-  // }
-  // return this._d('ellipse', paths, o);
-  console.log(paths);
+  return ellipseResponse.opset;
 }
 
-function circle(
+export function circle(
   x: number,
   y: number,
   diameter: number,
   options?: Options
-): any {
+): OpSet {
   const ret = ellipse(x, y, diameter, diameter, options);
-  ret.shape = "circle";
   return ret;
 }
 

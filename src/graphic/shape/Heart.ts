@@ -3,6 +3,7 @@
  */
 
 import Path, { PathProps } from '../Path';
+import rough from '../../handdrawn/RoughCanvas';
 
 export class HeartShape {
     cx = 0
@@ -31,6 +32,19 @@ class Heart extends Path<HeartProps> {
         const y = shape.cy;
         const a = shape.width;
         const b = shape.height;
+
+        if (this.roughness) {
+            const rc = rough.canvas(ctx, {
+                options: {
+                    roughness: this.roughness,
+                },
+            });
+            const d = `M ${x} ${y} C ${x + a / 2} ${y - b * 2 / 3} ${x + a * 2} ${y + b / 3} ${x} ${y + b} `
+                + `C ${x - a * 2} ${y + b / 3} ${x - a / 2} ${y - b * 2 / 3} ${x} ${y}`;
+            rc.path(d);
+            return;
+        }
+
         ctx.moveTo(x, y);
         ctx.bezierCurveTo(
             x + a / 2, y - b * 2 / 3,

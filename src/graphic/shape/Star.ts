@@ -4,6 +4,7 @@
  */
 
 import Path, { PathProps } from '../Path';
+import rough from '../../handdrawn/RoughCanvas';
 
 const PI = Math.PI;
 const cos = Math.cos;
@@ -59,6 +60,23 @@ class Star extends Path<StarProps> {
         const xStart = x + r * cos(deg);
         const yStart = y + r * sin(deg);
         deg += dStep;
+
+        if (this.roughness) {
+            const rc = rough.canvas(ctx, {
+                options: {
+                    roughness: this.roughness,
+                },
+            });
+            const points: [number, number][] = [];
+            points.push([xStart, yStart]);
+            for (let i = 0, end = n * 2 - 1, ri; i < end; i++) {
+                ri = i % 2 === 0 ? r0 : r;
+                points.push([x + ri * cos(deg), y + ri * sin(deg)]);
+                deg += dStep;
+            }
+            rc.polygon(points);
+            return;
+        }
 
         // 记录边界点，用于判断inside
         ctx.moveTo(xStart, yStart);

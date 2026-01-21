@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Test BezierCurve</title>
+    <script src="../../dist/zrender.js"></script>
+</head>
+<body>
+    <div id="main" style="width: 1000px; height: 600px;"></div>
+    <script type="text/javascript">
+        var zr = zrender.init(document.getElementById('main'), {
+            roughness: 1
+        });
+
+        var shape = new zrender.BezierCurve({
+            shape: {
+                x1: 50,
+                y1: 300,
+                x2: 450,
+                y2: 300,
+                cpx1: 150,
+                cpy1: 50,
+                cpx2: 350,
+                cpy2: 550
+            },
+            style: {
+                stroke: '#000',
+                fill: null,
+                lineWidth: 2
+            }
+        });
+        zr.add(shape);
+    </script>
+</body>
+</html>

@@ -89,6 +89,7 @@ export interface PathProps extends DisplayableProps {
     strokeContainThreshold?: number
     segmentIgnoreThreshold?: number
     subPixelOptimize?: boolean
+    roughness?: number
 
     style?: PathStyleProps
     shape?: Dictionary<any>
@@ -142,6 +143,8 @@ class Path<Props extends PathProps = PathProps> extends Displayable<Props> {
     segmentIgnoreThreshold: number
 
     subPixelOptimize: boolean
+
+    roughness: number
 
     style: PathStyleProps
     /**

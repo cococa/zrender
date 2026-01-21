@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Test Ring</title>
+    <script src="../../dist/zrender.js"></script>
+</head>
+<body>
+    <div id="main" style="width: 1000px; height: 600px;"></div>
+    <script type="text/javascript">
+        var zr = zrender.init(document.getElementById('main'), {
+            roughness: 1
+        });
+
+        var shape = new zrender.Ring({
+            shape: {
+                cx: 300,
+                cy: 300,
+                r: 100,
+                r0: 50
+            },
+            style: {
+                stroke: '#000',
+                fill: 'rgba(255, 165, 0, 0.2)',
+                lineWidth: 2
+            }
+        });
+        zr.add(shape);
+    </script>
+</body>
+</html>

@@ -4,6 +4,7 @@
  */
 
 import Path, { PathProps } from '../Path';
+import rough from '../../handdrawn/RoughCanvas';
 
 const cos = Math.cos;
 const sin = Math.sin;
@@ -63,6 +64,37 @@ class Trochoid extends Path<TrochoidProps> {
             - delta * d * cos(0) + offsetX;
         y1 = (R + delta * r) * sin(0)
             - d * sin(0) + offsetY;
+
+        if (this.roughness) {
+            const rc = rough.canvas(ctx, {
+                options: {
+                    roughness: this.roughness,
+                },
+            });
+            const points: [number, number][] = [];
+            points.push([x1, y1]);
+
+            do {
+                num++;
+            }
+            while ((r * num) % (R + delta * r) !== 0);
+
+            do {
+                theta = Math.PI / 180 * i;
+                x2 = (R + delta * r) * cos(theta)
+                        - delta * d * cos((R / r + delta) * theta)
+                        + offsetX;
+                y2 = (R + delta * r) * sin(theta)
+                        - d * sin((R / r + delta) * theta)
+                        + offsetY;
+                points.push([x2, y2]);
+                i++;
+            }
+            while (i <= (r * num) / (R + delta * r) * 360);
+
+            rc.linearPath(points);
+            return;
+        }
 
         ctx.moveTo(x1, y1);
 

@@ -3,6 +3,7 @@
  */
 
 import Path, { PathProps } from '../Path';
+import rough from '../../handdrawn/RoughCanvas';
 
 export class RingShape {
     cx = 0
@@ -30,6 +31,21 @@ class Ring extends Path<RingProps> {
         const x = shape.cx;
         const y = shape.cy;
         const PI2 = Math.PI * 2;
+
+        if (this.roughness) {
+            const rc = rough.canvas(ctx, {
+                options: {
+                    roughness: this.roughness,
+                },
+            });
+            const r = shape.r;
+            const r0 = shape.r0;
+            const outer = `M ${x + r} ${y} A ${r} ${r} 0 1 0 ${x - r} ${y} A ${r} ${r} 0 1 0 ${x + r} ${y} Z`;
+            const inner = `M ${x + r0} ${y} A ${r0} ${r0} 0 1 1 ${x - r0} ${y} A ${r0} ${r0} 0 1 1 ${x + r0} ${y} Z`;
+            rc.path(outer + ' ' + inner);
+            return;
+        }
+
         ctx.moveTo(x + shape.r, y);
         ctx.arc(x, y, shape.r, 0, PI2, false);
         ctx.moveTo(x + shape.r0, y);

@@ -94,7 +94,7 @@ const commandReg = /([mlvhzcqtsa])([^mlvhzcqtsa]*)/ig;
 const numberReg = /-?([0-9]*\.)?[0-9]+([eE]-?[0-9]+)?/g;
 // const valueSplitReg = /[\s,]+/;
 
-function createPathProxyFromString(data: string) {
+export function createPathProxyFromString(data: string) {
     const path = new PathProxy();
 
     if (!data) {

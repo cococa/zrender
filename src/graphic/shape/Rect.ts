@@ -3,15 +3,10 @@
  * @module zrender/graphic/shape/Rect
  */
 
-import Path, { PathProps } from "../Path";
-import * as roundRectHelper from "../helper/roundRect";
-import { subPixelOptimizeRect } from "../helper/subPixelOptimize";
-
-import {
-  rectangle,
-  defaultOptions,
-  _drawToContext,
-} from "../../handdrawn/draw";
+import Path, { PathProps } from '../Path';
+import * as roundRectHelper from '../helper/roundRect';
+import { subPixelOptimizeRect } from '../helper/subPixelOptimize';
+import rough from '../../handdrawn/RoughCanvas';
 
 export class RectShape {
   // 左上、右上、右下、左下角的半径依次为r1、r2、r3、r4
@@ -62,23 +57,29 @@ class Rect extends Path<RectProps> {
       height = optimizedShape.height;
       optimizedShape.r = shape.r;
       shape = optimizedShape;
-    } else {
+    }
+    else {
       x = shape.x;
       y = shape.y;
       width = shape.width;
       height = shape.height;
     }
 
-    const roughnessOption = { ...defaultOptions, roughness: this.roughness || 2 };
-
-    const res = rectangle(x, y, width, height, roughnessOption);
-    console.log("rect build path", res);
+    if (this.roughness && !shape.r) {
+      const rc = rough.canvas(ctx, {
+        options: {
+          roughness: this.roughness,
+        },
+      });
+      rc.rectangle(x, y, width, height);
+      return;
+    }
 
     if (!shape.r) {
       // 普通绘制矩形
-      //   ctx.rect(x, y, width, height);
-      _drawToContext(ctx, res, 1);
-    } else {
+      ctx.rect(x, y, width, height);
+    }
+    else {
       // 带圆角的矩形
       roundRectHelper.buildPath(ctx, shape);
     }
@@ -89,6 +90,6 @@ class Rect extends Path<RectProps> {
   }
 }
 
-Rect.prototype.type = "rect";
+Rect.prototype.type = 'rect';
 
 export default Rect;

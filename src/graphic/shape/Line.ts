@@ -3,10 +3,10 @@
  * @module zrender/graphic/shape/Line
  */
 
-import Path, { PathProps } from "../Path";
-import { subPixelOptimizeLine } from "../helper/subPixelOptimize";
-import { VectorArray } from "../../core/vector";
-import rough from "roughjs";
+import Path, { PathProps } from '../Path';
+import { subPixelOptimizeLine } from '../helper/subPixelOptimize';
+import { VectorArray } from '../../core/vector';
+import rough from '../../handdrawn/RoughCanvas';
 
 // Avoid create repeatly.
 const subPixelOptimizeOutputShape = {};
@@ -29,7 +29,6 @@ class Line extends Path<LineProps> {
   shape: LineShape;
 
   constructor(opts?: LineProps) {
-    console.log("line constructor", opts);
     super(opts);
   }
 
@@ -45,8 +44,6 @@ class Line extends Path<LineProps> {
   }
 
   buildPath(ctx: CanvasRenderingContext2D, shape: LineShape) {
-    console.log("line buildPath", this.id, this.roughness);
-
     let x1;
     let y1;
     let x2;
@@ -62,7 +59,8 @@ class Line extends Path<LineProps> {
       y1 = optimizedShape.y1;
       x2 = optimizedShape.x2;
       y2 = optimizedShape.y2;
-    } else {
+    }
+    else {
       x1 = shape.x1;
       y1 = shape.y1;
       x2 = shape.x2;
@@ -75,29 +73,13 @@ class Line extends Path<LineProps> {
       return;
     }
 
-    // if (3) {
-    //   const rc = rough.canvas(null, ctx,{
-    //     options: {
-    //       roughness: 1
-    //     }
-    //   });
-    //   console.log(rc)
-    //   rc.line(x1, y1, x2, y2);
-
-    //   // this.drawHandDrawnLine(ctx, x1, y1, x2, y2, this.roughness);
-    //   return;
-    // }
-
     if (this.roughness) {
-      const rc = rough.canvas(null, ctx, {
+      const rc = rough.canvas(ctx, {
         options: {
           roughness: this.roughness,
         },
       });
-      console.log(rc);
       rc.line(x1, y1, x2, y2);
-
-      // this.drawHandDrawnLine(ctx, x1, y1, x2, y2, this.roughness);
       return;
     }
 
@@ -157,5 +139,5 @@ class Line extends Path<LineProps> {
   }
 }
 
-Line.prototype.type = "line";
+Line.prototype.type = 'line';
 export default Line;

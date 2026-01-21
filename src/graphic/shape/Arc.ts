@@ -3,7 +3,7 @@
  */
 
 import Path, { PathProps } from "../Path";
-// import rough  from 'roughjs'
+import rough from '../../handdrawn/RoughCanvas';
 
 export class ArcShape {
   cx = 0;
@@ -47,11 +47,21 @@ class Arc extends Path<ArcProps> {
     const unitX = Math.cos(startAngle);
     const unitY = Math.sin(startAngle);
 
+    if (this.roughness) {
+      const rc = rough.canvas(ctx, {
+        options: {
+          roughness: this.roughness,
+        },
+      });
+      rc.arc(x, y, r, startAngle, endAngle, !clockwise);
+      return;
+    }
+
     ctx.moveTo(unitX * r + x, unitY * r + y);
     ctx.arc(x, y, r, startAngle, endAngle, !clockwise);
   }
 }
 
-Arc.prototype.type = "arc";
+Arc.prototype.type = 'arc';
 
 export default Arc;

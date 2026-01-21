@@ -3,6 +3,7 @@
  */
 
 import Path, { PathProps } from '../Path';
+import rough from '../../handdrawn/RoughCanvas';
 
 export class EllipseShape {
     cx = 0
@@ -27,6 +28,16 @@ class Ellipse extends Path<EllipseProps> {
     }
 
     buildPath(ctx: CanvasRenderingContext2D, shape: EllipseShape) {
+        if (this.roughness) {
+            const rc = rough.canvas(ctx, {
+                options: {
+                    roughness: this.roughness,
+                },
+            });
+            rc.ellipse(shape.cx, shape.cy, shape.rx * 2, shape.ry * 2);
+            return;
+        }
+
         const k = 0.5522848;
         const x = shape.cx;
         const y = shape.cy;

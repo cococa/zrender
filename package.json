@@ -32,7 +32,6 @@
   "module": "index.js",
   "main": "dist/zrender.js",
   "dependencies": {
-    "roughjs": "file:../rough",
     "tslib": "2.3.0"
   },
   "sideEffects": [

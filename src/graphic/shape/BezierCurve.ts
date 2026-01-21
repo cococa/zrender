@@ -3,6 +3,7 @@
  */
 
 import Path, { PathProps } from '../Path';
+import rough from '../../handdrawn/RoughCanvas';
 import * as vec2 from '../../core/vector';
 import {
     quadraticSubdivide,
@@ -81,8 +82,6 @@ class BezierCurve extends Path<BezierCurveProps> {
             return;
         }
 
-        ctx.moveTo(x1, y1);
-
         if (cpx2 == null || cpy2 == null) {
             if (percent < 1) {
                 quadraticSubdivide(x1, cpx1, x2, percent, out);
@@ -92,11 +91,6 @@ class BezierCurve extends Path<BezierCurveProps> {
                 cpy1 = out[1];
                 y2 = out[2];
             }
-
-            ctx.quadraticCurveTo(
-                cpx1, cpy1,
-                x2, y2
-            );
         }
         else {
             if (percent < 1) {
@@ -109,6 +103,34 @@ class BezierCurve extends Path<BezierCurveProps> {
                 cpy2 = out[2];
                 y2 = out[3];
             }
+        }
+
+        if (this.roughness) {
+            const rc = rough.canvas(ctx, {
+                options: {
+                    roughness: this.roughness,
+                },
+            });
+            let d = `M ${x1} ${y1}`;
+            if (cpx2 == null || cpy2 == null) {
+                d += ` Q ${cpx1} ${cpy1} ${x2} ${y2}`;
+            }
+        else {
+                d += ` C ${cpx1} ${cpy1} ${cpx2} ${cpy2} ${x2} ${y2}`;
+            }
+            rc.path(d);
+            return;
+        }
+
+        ctx.moveTo(x1, y1);
+
+        if (cpx2 == null || cpy2 == null) {
+            ctx.quadraticCurveTo(
+                cpx1, cpy1,
+                x2, y2
+            );
+        }
+        else {
             ctx.bezierCurveTo(
                 cpx1, cpy1,
                 cpx2, cpy2,

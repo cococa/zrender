@@ -1,5 +1,6 @@
 import Path, { PathProps } from '../Path';
 import * as roundSectorHelper from '../helper/roundSector';
+import rough from '../../handdrawn/RoughCanvas';
 
 export class SectorShape {
     cx = 0
@@ -42,6 +43,46 @@ class Sector extends Path<SectorProps> {
     }
 
     buildPath(ctx: CanvasRenderingContext2D, shape: SectorShape) {
+        if (this.roughness) {
+            const rc = rough.canvas(ctx, {
+                options: {
+                    roughness: this.roughness,
+                },
+            });
+
+            const recorder = {
+                d: [] as string[],
+                moveTo(x: number, y: number) {
+                    this.d.push(`M ${x} ${y}`);
+                },
+                lineTo(x: number, y: number) {
+                    this.d.push(`L ${x} ${y}`);
+                },
+                bezierCurveTo(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number) {
+                    this.d.push(`C ${x1} ${y1} ${x2} ${y2} ${x3} ${y3}`);
+                },
+                quadraticCurveTo(x1: number, y1: number, x2: number, y2: number) {
+                    this.d.push(`Q ${x1} ${y1} ${x2} ${y2}`);
+                },
+                arc(x: number, y: number, r: number, startAngle: number, endAngle: number, anticlockwise: boolean) {
+                    const endX = x + r * Math.cos(endAngle);
+                    const endY = y + r * Math.sin(endAngle);
+                    let largeArc = Math.abs(endAngle - startAngle) > Math.PI ? 1 : 0;
+                    if (Math.abs(endAngle - startAngle) > Math.PI * 2 - 1e-4) {
+                         largeArc = 1; // Full circle case
+                    }
+                    const sweep = anticlockwise ? 0 : 1;
+                    this.d.push(`A ${r} ${r} 0 ${largeArc} ${sweep} ${endX} ${endY}`);
+                },
+                closePath() {
+                    this.d.push('Z');
+                }
+            };
+
+            roundSectorHelper.buildPath(recorder as any, shape);
+            rc.path(recorder.d.join(' '));
+            return;
+        }
         roundSectorHelper.buildPath(ctx, shape);
     }
 
