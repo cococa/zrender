@@ -65,17 +65,35 @@ class Rect extends Path<RectProps> {
       height = shape.height;
     }
 
-    if (this.roughness && !shape.r) {
-      const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
-      const rc = rough.canvas(ctx, {
-        options: {
-          roughness: this.roughness,
-          fillStyle: this.filler,
-          fill: fill,
-        },
+    // clipPath 不应该应用手绘效果
+    // 检查是否有 __clipTarget 属性，或者检查 parent 是否有 __clipPaths
+    const isClipPath = !!(this as any).__clipTarget;
+    //&& !isClipPath && width > 0 && height > 0
+    if (this.roughness && !shape.r ) {
+      console.log('=== Rect.buildPath with roughness ===', {
+        roughness: this.roughness,
+        filler: this.filler,
+        fill: this.style.fill,
+        stroke: this.style.stroke,
+        x, y, width, height
       });
-      rc.rectangle(x, y, width, height);
-      return;
+      
+      const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
+      const stroke = typeof this.style.stroke === 'string' ? this.style.stroke : undefined;
+      
+      if (fill || stroke) {
+        const rc = rough.canvas(ctx, {
+          options: {
+            roughness: this.roughness,
+            fillStyle: this.filler,
+            fill: fill,
+            stroke: stroke,
+            strokeWidth: this.style.lineWidth || 1,
+          },
+        });
+        rc.rectangle(x, y, width, height);
+        return;
+      }
     }
 
     if (!shape.r) {

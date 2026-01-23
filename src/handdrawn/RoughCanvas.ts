@@ -241,6 +241,13 @@ export class RoughCanvas {
         if (!ops || !ops.length) {
             return;
         }
+        
+        console.log('=== RoughCanvas._drawFillOps called ===');
+        console.log('fill color:', o.fill);
+        console.log('fillStyle:', o.fillStyle);
+        console.log('ops count:', ops.length);
+        console.trace('Call stack');
+        
         const ctx = this.ctx;
         // 如果是 PathProxy (没有 save 方法)，则不调用 save/restore/stroke/beginPath
         // 这样可以将所有路径指令累积到 PathProxy 中
@@ -274,9 +281,11 @@ export class RoughCanvas {
     }
 
     rectangle(x: number, y: number, width: number, height: number, options?: Options) {
+        console.log('=== RoughCanvas.rectangle called ===', { x, y, width, height, options });
         const o = this._getOptions(options);
         const ops = rectangle(x, y, width, height, o);
         if (ops.fillOps) {
+            console.log('rectangle has fillOps, calling _drawFillOps');
             this._drawFillOps(ops.fillOps, o);
         }
         drawOpsToContext(this.ctx, ops);
@@ -288,9 +297,11 @@ export class RoughCanvas {
     }
 
     circle(x: number, y: number, diameter: number, options?: Options) {
+        console.log('=== RoughCanvas.circle called ===', { x, y, diameter, options });
         const o = this._getOptions(options);
         const ops = circle(x, y, diameter, o);
         if (ops.fillOps) {
+            console.log('circle has fillOps, calling _drawFillOps');
             this._drawFillOps(ops.fillOps, o);
         }
         drawOpsToContext(this.ctx, ops);
@@ -302,9 +313,11 @@ export class RoughCanvas {
     }
 
     ellipse(x: number, y: number, width: number, height: number, options?: Options) {
+        console.log('=== RoughCanvas.ellipse called ===', { x, y, width, height, options });
         const o = this._getOptions(options);
         const ops = ellipse(x, y, width, height, o);
         if (ops.fillOps) {
+            console.log('ellipse has fillOps, calling _drawFillOps');
             this._drawFillOps(ops.fillOps, o);
         }
         drawOpsToContext(this.ctx, ops);
@@ -327,9 +340,11 @@ export class RoughCanvas {
     }
 
     polygon(points: [number, number][], options?: Options) {
+        console.log('=== RoughCanvas.polygon called ===', { points, options });
         const o = this._getOptions(options);
         const ops = polygon(points, o);
         if (ops.fillOps) {
+            console.log('polygon has fillOps, calling _drawFillOps');
             this._drawFillOps(ops.fillOps, o);
         }
         drawOpsToContext(this.ctx, ops);

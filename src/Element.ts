@@ -294,7 +294,7 @@ interface Element<Props extends ElementProps = ElementProps> extends Transformab
 class Element<Props extends ElementProps = ElementProps> {
 
     roughness: number
-    filler: string
+    filler: 'hachure' | 'zigzag' | 'cross-hatch' | 'dots' | 'dashed' | 'zigzag-line';
 
     id: number = guid()
     /**

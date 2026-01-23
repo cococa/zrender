@@ -38,14 +38,25 @@ class Polyline extends Path<PolylineProps> {
     }
 
     buildPath(ctx: CanvasRenderingContext2D, shape: PolylineShape) {
+        console.log('=== zrender Polyline.buildPath ===', {
+            roughness: this.roughness,
+            filler: this.filler,
+            points: shape.points ? shape.points.length : 0,
+            stroke: this.style.stroke
+        });
+        
         if (this.roughness) {
+            const stroke = typeof this.style.stroke === 'string' ? this.style.stroke : undefined;
             const rc = rough.canvas(ctx, {
                 options: {
-          roughness: this.roughness,
-          fillStyle: this.filler,
-        },
+                    roughness: this.roughness,
+                    fillStyle: this.filler,
+                    stroke: stroke,
+                    strokeWidth: this.style.lineWidth || 1,
+                },
             });
             if (shape.points) {
+                console.log('Drawing rough polyline with stroke:', stroke);
                 rc.linearPath(shape.points as [number, number][]);
             }
             return;

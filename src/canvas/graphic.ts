@@ -97,6 +97,34 @@ function brushPath(ctx: CanvasRenderingContext2D, el: Path, style: PathStyleProp
 
     // TODO Reduce path memory cost.
     const firstDraw = !el.path;
+    
+    // 如果元素有 roughness，直接绘制而不使用 PathProxy
+    if (el.roughness) {
+        console.log('=== brushPath: drawing with roughness directly ===', {
+            type: el.type,
+            roughness: el.roughness,
+            hasStroke: hasStroke,
+            hasFill: hasFill,
+            strokeColor: style.stroke,
+            fillColor: style.fill
+        });
+        ctx.save();
+        ctx.beginPath();
+        el.buildPath(ctx as any, el.shape, inBatch);
+        
+        if (hasStroke) {
+            doStrokePath(ctx, style);
+        }
+        if (hasFill) {
+            doFillPath(ctx, style);
+        }
+        
+        ctx.restore();
+        el.__dirty = 0;
+        el.__isRendered = true;
+        return;
+    }
+    
     // Create path for each element when:
     // 1. Element has interactions.
     // 2. Element draw part of the line.
@@ -520,10 +548,17 @@ function updateClipStatus(clipPaths: Path[], ctx: CanvasRenderingContext2D, scop
         // Ignore draw following elements if clipPath has zero area.
         allClipped = allClipped || clipPath.isZeroArea();
 
+        // clipPath 不应该应用手绘效果，临时移除 roughness
+        const originalRoughness = clipPath.roughness;
+        clipPath.roughness = 0;
+
         setContextTransform(ctx, clipPath);
         ctx.beginPath();
         clipPath.buildPath(ctx, clipPath.shape);
         ctx.clip();
+
+        // 恢复 roughness
+        clipPath.roughness = originalRoughness;
     }
     scope.allClipped = allClipped;
 }

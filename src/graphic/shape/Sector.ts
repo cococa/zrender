@@ -45,45 +45,64 @@ class Sector extends Path<SectorProps> {
     buildPath(ctx: CanvasRenderingContext2D, shape: SectorShape) {
         if (this.roughness) {
             const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
+            const stroke = typeof this.style.stroke === 'string' ? this.style.stroke : undefined;
+            
+            console.log('=== Sector.buildPath with roughness ===', {
+                roughness: this.roughness,
+                filler: this.filler,
+                fill: fill,
+                stroke: stroke,
+                shape: shape
+            });
+            
+            const { cx, cy, r0, r, startAngle, endAngle, clockwise } = shape;
+            
+            // 将扇形转换为多边形点集
+            const steps = Math.max(20, Math.ceil(Math.abs(endAngle - startAngle) / (Math.PI / 18))); // 至少20个点
+            const points: [number, number][] = [];
+            
+            // 如果有内半径，需要构建圆环扇形
+            if (r0 > 0) {
+                // 外弧的点
+                for (let i = 0; i <= steps; i++) {
+                    const angle = startAngle + (endAngle - startAngle) * i / steps;
+                    const x = cx + r * Math.cos(angle);
+                    const y = cy + r * Math.sin(angle);
+                    points.push([x, y]);
+                }
+                // 内弧的点（反向）
+                for (let i = steps; i >= 0; i--) {
+                    const angle = startAngle + (endAngle - startAngle) * i / steps;
+                    const x = cx + r0 * Math.cos(angle);
+                    const y = cy + r0 * Math.sin(angle);
+                    points.push([x, y]);
+                }
+            } else {
+                // 从圆心开始
+                points.push([cx, cy]);
+                // 圆弧的点
+                for (let i = 0; i <= steps; i++) {
+                    const angle = startAngle + (endAngle - startAngle) * i / steps;
+                    const x = cx + r * Math.cos(angle);
+                    const y = cy + r * Math.sin(angle);
+                    points.push([x, y]);
+                }
+            }
+            
+            console.log('Sector polygon points:', points.length);
+            
+            // 使用 rough.js 的 polygon 方法绘制
             const rc = rough.canvas(ctx, {
                 options: {
-          roughness: this.roughness,
-          fillStyle: this.filler,
-          fill: fill,
-        },
+                    roughness: this.roughness,
+                    fillStyle: this.filler,
+                    fill: fill,
+                    stroke: stroke,
+                    strokeWidth: this.style.lineWidth || 1,
+                },
             });
-
-            const recorder = {
-                d: [] as string[],
-                moveTo(x: number, y: number) {
-                    this.d.push(`M ${x} ${y}`);
-                },
-                lineTo(x: number, y: number) {
-                    this.d.push(`L ${x} ${y}`);
-                },
-                bezierCurveTo(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number) {
-                    this.d.push(`C ${x1} ${y1} ${x2} ${y2} ${x3} ${y3}`);
-                },
-                quadraticCurveTo(x1: number, y1: number, x2: number, y2: number) {
-                    this.d.push(`Q ${x1} ${y1} ${x2} ${y2}`);
-                },
-                arc(x: number, y: number, r: number, startAngle: number, endAngle: number, anticlockwise: boolean) {
-                    const endX = x + r * Math.cos(endAngle);
-                    const endY = y + r * Math.sin(endAngle);
-                    let largeArc = Math.abs(endAngle - startAngle) > Math.PI ? 1 : 0;
-                    if (Math.abs(endAngle - startAngle) > Math.PI * 2 - 1e-4) {
-                         largeArc = 1; // Full circle case
-                    }
-                    const sweep = anticlockwise ? 0 : 1;
-                    this.d.push(`A ${r} ${r} 0 ${largeArc} ${sweep} ${endX} ${endY}`);
-                },
-                closePath() {
-                    this.d.push('Z');
-                }
-            };
-
-            roundSectorHelper.buildPath(recorder as any, shape);
-            rc.path(recorder.d.join(' '));
+            
+            rc.polygon(points);
             return;
         }
         roundSectorHelper.buildPath(ctx, shape);

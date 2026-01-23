@@ -81,7 +81,7 @@ class ZRender {
   animation: Animation;
 
   roughness: number;
-  filler: string;
+  filler: 'hachure' | 'zigzag' | 'cross-hatch' | 'dots' | 'dashed' | 'zigzag-line';
 
   private _sleepAfterStill = 10;
 
@@ -529,7 +529,7 @@ export interface ZRenderInitOpt {
   pointerSize?: number;
   ssr?: boolean; // If enable ssr mode.
   roughness?: number; //手绘粗糙度 0为正常 大于0为手绘风格
-  filler?: string; // 填充风格 hachure/zigzag/cross-hatch/dots/dashed/zigzag-line
+  filler?: 'hachure' | 'zigzag' | 'cross-hatch' | 'dots' | 'dashed' | 'zigzag-line'; // 填充风格 hachure/zigzag/cross-hatch/dots/dashed/zigzag-line
 }
 
 /**
