@@ -28,14 +28,28 @@ class Circle extends Path<CircleProps> {
   buildPath(ctx: CanvasRenderingContext2D, shape: CircleShape) {
     // Use moveTo to start a new sub path.
     // Or it will be connected to other subpaths when in CompoundPath
-
+    console.log("Circle buildPath",this.roughness)
     if (this.roughness) {
       const fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
+      const stroke = typeof this.style.stroke === 'string' ? this.style.stroke : undefined;
+      
+      console.log('=== Circle.buildPath with roughness ===', {
+        roughness: this.roughness,
+        filler: this.filler,
+        fill: fill,
+        stroke: stroke,
+        cx: shape.cx,
+        cy: shape.cy,
+        r: shape.r
+      });
+      
       const rc = rough.canvas(ctx, {
         options: {
           roughness: this.roughness,
           fillStyle: this.filler,
           fill: fill,
+          stroke: stroke,
+          strokeWidth: this.style.lineWidth || 1,
         },
       });
       rc.circle(shape.cx, shape.cy, shape.r * 2);

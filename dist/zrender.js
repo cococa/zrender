@@ -10832,13 +10832,26 @@
             return new CircleShape();
         };
         Circle.prototype.buildPath = function (ctx, shape) {
+            console.log("Circle buildPath", this.roughness);
             if (this.roughness) {
                 var fill = typeof this.style.fill === 'string' ? this.style.fill : undefined;
+                var stroke = typeof this.style.stroke === 'string' ? this.style.stroke : undefined;
+                console.log('=== Circle.buildPath with roughness ===', {
+                    roughness: this.roughness,
+                    filler: this.filler,
+                    fill: fill,
+                    stroke: stroke,
+                    cx: shape.cx,
+                    cy: shape.cy,
+                    r: shape.r
+                });
                 var rc = rough.canvas(ctx, {
                     options: {
                         roughness: this.roughness,
                         fillStyle: this.filler,
                         fill: fill,
+                        stroke: stroke,
+                        strokeWidth: this.style.lineWidth || 1,
                     },
                 });
                 rc.circle(shape.cx, shape.cy, shape.r * 2);
